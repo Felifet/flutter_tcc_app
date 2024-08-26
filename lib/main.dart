@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'src/screens/login_screen.dart';
-import 'src/screens/menu_screen.dart';
+import 'src/screens/product_list_screen.dart';
+import 'src/screens/add_product_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,16 +12,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'App TCC',
+      title: 'TCC App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 24, 174, 194)),
-        useMaterial3: true,
+        primarySwatch: Colors.deepPurple,
       ),
-      initialRoute: '/login',
+      initialRoute: '/',
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/menu': (context) => const MenuScreen(),
+        '/': (context) => const ProductListScreen(),
+        '/add_product': (context) => const AddProductScreen(),
       },
     );
   }
