@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'src/screens/menu_screen.dart';
 import 'src/screens/product_list_screen.dart';
 import 'src/screens/add_product_screen.dart';
 
@@ -18,7 +19,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const ProductListScreen(),
+        '/': (context) => const MenuScreen(),
+        '/products': (context) => const ProductListScreen(),
         '/add_product': (context) => const AddProductScreen(),
       },
     );

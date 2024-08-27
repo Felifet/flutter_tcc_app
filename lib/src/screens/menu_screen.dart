@@ -13,15 +13,17 @@ class MenuScreen extends StatelessWidget {
           children: <Widget>[
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/home');
+                // Navegar para a tela de produtos
+                Navigator.pushNamed(context, '/products');
               },
-              child: const Text('Home Screen'),
+              child: const Text('Products'),
             ),
+            const SizedBox(height: 16.0), // Espaçamento entre os botões
             ElevatedButton(
               onPressed: () {
-                // Navegar para outra tela no futuro
+                // Placeholder para funcionalidade de backup futura
               },
-              child: const Text('Outra Tela'),
+              child: const Text('Backup'),
             ),
           ],
         ),
