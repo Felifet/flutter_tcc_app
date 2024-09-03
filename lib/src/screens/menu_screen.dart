@@ -16,7 +16,14 @@ class MenuScreen extends StatelessWidget {
                 // Navegar para a tela de produtos
                 Navigator.pushNamed(context, '/products');
               },
-              child: const Text('Products'),
+              child: const Text('Produtos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Navegar para a tela de produtos
+                Navigator.pushNamed(context, '/glebas');
+              },
+              child: const Text('Glebas'),
             ),
             const SizedBox(height: 16.0), // Espaçamento entre os botões
             ElevatedButton(
