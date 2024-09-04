@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tcc_app/src/screens/product/add_product_screen.dart';
-import '../../services/db_helper.dart';
-import 'product_edit_screen.dart'; // Importe a tela de edição
+import '../../models/product_model.dart';
+import '../../controllers/product_controller.dart';
+import 'add_product_screen.dart';
+import 'product_edit_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
@@ -11,12 +12,13 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  late Future<List<Map<String, dynamic>>> _productList;
+  late Future<List<Product>> _productList;
+  final ProductController _controller = ProductController();
 
   @override
   void initState() {
     super.initState();
-    _productList = DBHelper().getProducts();
+    _productList = _controller.getAllProducts();
   }
 
   @override
@@ -25,7 +27,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(
         title: const Text('Product List'),
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<Product>>(
         future: _productList,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -40,14 +42,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
               itemBuilder: (context, index) {
                 final product = snapshot.data![index];
 
-                // Verifique se os campos obrigatórios estão presentes
-                final nameComercial =
-                    product['nomeComercial'] ?? 'Nome Indisponível';
-                final type = product['tipo'] ?? 'Tipo Indisponível';
-
                 return ListTile(
-                  title: Text(nameComercial),
-                  subtitle: Text('Type: $type'),
+                  title: Text(product.nomeComercial),
+                  subtitle: Text('Type: ${product.tipo}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -63,52 +60,42 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ).then((_) {
                             // Atualiza a lista após voltar da tela de edição
                             setState(() {
-                              _productList = DBHelper().getProducts();
+                              _productList = _controller.getAllProducts();
                             });
                           });
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete),
+                        icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () async {
-                          // Confirmação antes de excluir
-                          final confirmDelete = await showDialog<bool>(
+                          final confirm = await showDialog<bool>(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirmar Exclusão'),
-                              content: const Text(
-                                  'Você tem certeza que deseja excluir este produto?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(false);
-                                  },
-                                  child: const Text('Cancelar'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(true);
-                                  },
-                                  child: const Text('Excluir'),
-                                ),
-                              ],
-                            ),
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Confirm Delete'),
+                                content: Text(
+                                    'Are you sure you want to delete "${product.nomeComercial}"?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              );
+                            },
                           );
 
-                          if (confirmDelete == true) {
-                            // Excluir o produto do banco de dados
-                            await DBHelper().deleteProduct(product['id']);
-
-                            // Atualiza a lista após excluir
+                          if (confirm == true) {
+                            await _controller.deleteProduct(product.id!);
                             setState(() {
-                              _productList = DBHelper().getProducts();
+                              _productList = _controller.getAllProducts();
                             });
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Produto excluído com sucesso.'),
-                              ),
-                            );
                           }
                         },
                       ),
@@ -125,13 +112,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  const AddProductScreen(), // Chame a tela de adição
+              builder: (context) => const AddProductScreen(),
             ),
           ).then((_) {
             // Atualiza a lista após voltar da tela de adição
             setState(() {
-              _productList = DBHelper().getProducts();
+              _productList = _controller.getAllProducts();
             });
           });
         },
