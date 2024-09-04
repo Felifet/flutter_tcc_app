@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/gleba_model.dart';
-import '../../services/db_helper.dart';
+import '../../controllers/gleba_controller.dart';
 
 class GlebaEditScreen extends StatefulWidget {
   final Gleba? gleba;
@@ -13,6 +13,7 @@ class GlebaEditScreen extends StatefulWidget {
 
 class _GlebaEditScreenState extends State<GlebaEditScreen> {
   final _formKey = GlobalKey<FormState>();
+  final GlebaController _controller = GlebaController();
   late TextEditingController _nomeController;
   late TextEditingController _areaController;
 
@@ -40,45 +41,15 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
         area: double.tryParse(_areaController.text) ?? 0,
       );
 
-      if (widget.gleba == null) {
-        await DBHelper().insertGleba(gleba);
-      } else {
-        await DBHelper().updateGleba(gleba);
-      }
-
+      await _controller.saveGleba(gleba);
       Navigator.pop(context);
     }
   }
 
   void _deleteGleba() async {
     if (widget.gleba != null) {
-      final confirmDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Confirmar Exclusão'),
-          content:
-              const Text('Você tem certeza que deseja excluir esta gleba?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Excluir'),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmDelete == true) {
-        await DBHelper().deleteGleba(widget.gleba!.id!);
-        Navigator.pop(context); // Volta para a lista após excluir
-      }
+      await _controller.deleteGleba(widget.gleba!.id!);
+      Navigator.pop(context); // Volta após excluir
     }
   }
 
@@ -86,7 +57,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.gleba == null ? 'Adicionar Gleba' : 'Editar Gleba'),
+        title: Text(widget.gleba == null ? 'Add Gleba' : 'Edit Gleba'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -100,7 +71,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                     const InputDecoration(labelText: 'Nome Identificador'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Informe um nome!';
+                    return 'Please enter a name';
                   }
                   return null;
                 },
@@ -111,7 +82,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Informe a área!';
+                    return 'Please enter an area';
                   }
                   return null;
                 },
@@ -123,7 +94,9 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                   if (widget.gleba != null)
                     ElevatedButton(
                       onPressed: _deleteGleba,
-                      style: ElevatedButton.styleFrom(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
                       child: const Text('Excluir'),
                     ),
                   ElevatedButton(
