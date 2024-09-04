@@ -50,11 +50,43 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
     }
   }
 
+  void _deleteGleba() async {
+    if (widget.gleba != null) {
+      final confirmDelete = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta gleba?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Excluir'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmDelete == true) {
+        await DBHelper().deleteGleba(widget.gleba!.id!);
+        Navigator.pop(context); // Volta para a lista após excluir
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.gleba == null ? 'Add Gleba' : 'Edit Gleba'),
+        title: Text(widget.gleba == null ? 'Adicionar Gleba' : 'Editar Gleba'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -68,7 +100,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                     const InputDecoration(labelText: 'Nome Identificador'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                    return 'Informe um nome!';
                   }
                   return null;
                 },
@@ -79,15 +111,26 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter an area';
+                    return 'Informe a área!';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveGleba,
-                child: const Text('Save'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (widget.gleba != null)
+                    ElevatedButton(
+                      onPressed: _deleteGleba,
+                      style: ElevatedButton.styleFrom(),
+                      child: const Text('Excluir'),
+                    ),
+                  ElevatedButton(
+                    onPressed: _saveGleba,
+                    child: const Text('Salvar'),
+                  ),
+                ],
               ),
             ],
           ),
