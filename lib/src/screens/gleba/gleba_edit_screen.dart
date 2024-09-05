@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/gleba_model.dart';
-import '../../controllers/gleba_controller.dart';
+import '../../services/gleba_service.dart';
 
 class GlebaEditScreen extends StatefulWidget {
   final Gleba? gleba;
@@ -13,9 +13,10 @@ class GlebaEditScreen extends StatefulWidget {
 
 class _GlebaEditScreenState extends State<GlebaEditScreen> {
   final _formKey = GlobalKey<FormState>();
-  final GlebaController _controller = GlebaController();
   late TextEditingController _nomeController;
   late TextEditingController _areaController;
+
+  final GlebaService _glebaService = GlebaService();
 
   @override
   void initState() {
@@ -41,15 +42,41 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
         area: double.tryParse(_areaController.text) ?? 0,
       );
 
-      await _controller.saveGleba(gleba);
+      if (widget.gleba == null) {
+        await _glebaService.addGleba(gleba);
+      } else {
+        await _glebaService.updateGleba(gleba);
+      }
+
       Navigator.pop(context);
     }
   }
 
-  void _deleteGleba() async {
+  void _confirmDeleteGleba() async {
     if (widget.gleba != null) {
-      await _controller.deleteGleba(widget.gleba!.id!);
-      Navigator.pop(context); // Volta após excluir
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content:
+              const Text('Você tem certeza que deseja excluir esta Gleba?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        await _glebaService.deleteGleba(widget.gleba!.id!);
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -57,7 +84,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.gleba == null ? 'Add Gleba' : 'Edit Gleba'),
+        title: Text(widget.gleba == null ? 'Adicionar Gleba' : 'Editar Gleba'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -71,10 +98,11 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                     const InputDecoration(labelText: 'Nome Identificador'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
+                    return 'Informe um nome!';
                   }
                   return null;
                 },
+                style: const TextStyle(fontSize: 18),
               ),
               TextFormField(
                 controller: _areaController,
@@ -82,26 +110,37 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter an area';
+                    return 'Informe a área';
                   }
                   return null;
                 },
+                style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (widget.gleba != null)
-                    ElevatedButton(
-                      onPressed: _deleteGleba,
+                  SizedBox(
+                    width: 120,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: _confirmDeleteGleba,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                       ),
                       child: const Text('Excluir'),
                     ),
-                  ElevatedButton(
-                    onPressed: _saveGleba,
-                    child: const Text('Salvar'),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    height: 45,
+                    child: ElevatedButton(
+                      onPressed: _saveGleba,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: const Text('Salvar'),
+                    ),
                   ),
                 ],
               ),

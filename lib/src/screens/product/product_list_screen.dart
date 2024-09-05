@@ -21,11 +21,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _productList = _controller.getAllProducts();
   }
 
+  Future<void> _reloadProducts() async {
+    setState(() {
+      _productList = _controller.getAllProducts();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product List'),
+        title: const Text('Consulta de Produtos'),
       ),
       body: FutureBuilder<List<Product>>(
         future: _productList,
@@ -33,74 +39,38 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return const Center(child: Text('Error loading products.'));
+            return const Center(child: Text('Erro ao carregar os produtos.'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products found.'));
+            return const Center(child: Text('Nenhum produto encontrado!'));
           } else {
-            return ListView.builder(
+            return ListView.separated(
               itemCount: snapshot.data!.length,
+              separatorBuilder: (context, index) => const Divider(
+                height: 1.0,
+                color: Colors.grey,
+              ),
               itemBuilder: (context, index) {
                 final product = snapshot.data![index];
 
                 return ListTile(
-                  title: Text(product.nomeComercial),
-                  subtitle: Text('Type: ${product.tipo}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProductEditScreen(product: product),
-                            ),
-                          ).then((_) {
-                            // Atualiza a lista após voltar da tela de edição
-                            setState(() {
-                              _productList = _controller.getAllProducts();
-                            });
-                          });
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: const Text('Confirm Delete'),
-                                content: Text(
-                                    'Are you sure you want to delete "${product.nomeComercial}"?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    child: const Text('Delete'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          if (confirm == true) {
-                            await _controller.deleteProduct(product.id!);
-                            setState(() {
-                              _productList = _controller.getAllProducts();
-                            });
-                          }
-                        },
-                      ),
-                    ],
+                  title: Text(
+                    product.nomeComercial,
+                    style: const TextStyle(fontSize: 20), // Aumenta a fonte
                   ),
+                  subtitle: Text(
+                    'Tipo do Produto: ${product.tipo}',
+                    style: const TextStyle(fontSize: 18), // Aumenta a fonte
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProductEditScreen(product: product),
+                      ),
+                    ).then((_) =>
+                        _reloadProducts()); // Atualiza a lista após voltar
+                  },
                 );
               },
             );
@@ -114,12 +84,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             MaterialPageRoute(
               builder: (context) => const AddProductScreen(),
             ),
-          ).then((_) {
-            // Atualiza a lista após voltar da tela de adição
-            setState(() {
-              _productList = _controller.getAllProducts();
-            });
-          });
+          ).then((_) =>
+              _reloadProducts()); // Atualiza a lista após adicionar um novo produto
         },
         child: const Icon(Icons.add),
       ),

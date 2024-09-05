@@ -1,4 +1,6 @@
+import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
+import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -23,6 +25,7 @@ class DBHelper {
         version: 1,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade, // Preparação para futuras migrações
+        onOpen: _checkTables, // Verifica tabelas ao abrir o banco de dados
       );
     } catch (e) {
       print("Erro ao inicializar o banco de dados: $e");
@@ -32,7 +35,6 @@ class DBHelper {
 
   Future _onCreate(Database db, int version) async {
     try {
-      // Criação da tabela de produtos
       await db.execute('''
         CREATE TABLE products (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +49,6 @@ class DBHelper {
         )
       ''');
 
-      // Criação da tabela de Glebas
       await db.execute('''
         CREATE TABLE Gleba (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,17 +58,88 @@ class DBHelper {
           FOREIGN KEY (cultivar_id) REFERENCES Cultivar(id)
         )
       ''');
+
+      await db.execute('''
+        CREATE TABLE Ciclo (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          descricao TEXT NOT NULL
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE DoencaPraga (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          descricaoCurta TEXT NOT NULL,
+          descricaoLonga TEXT
+        )
+      ''');
     } catch (e) {
       print("Erro ao criar as tabelas: $e");
       throw Exception("Erro ao criar as tabelas");
     }
   }
 
-  // Migração: Atualizar a estrutura do banco de dados se necessário
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < newVersion) {
       // Adicionar comandos de migração conforme necessário
       print("Atualizando banco de dados de $oldVersion para $newVersion");
+    }
+  }
+
+  Future<void> _checkTables(Database db) async {
+    final tables = ['products', 'Gleba', 'Ciclo', 'DoencaPraga'];
+    for (String table in tables) {
+      final result = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='$table'",
+      );
+      if (result.isEmpty) {
+        print("Tabela $table não encontrada. Criando a tabela...");
+        switch (table) {
+          case 'products':
+            await db.execute('''
+              CREATE TABLE products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT NOT NULL,
+                nomeComercial TEXT NOT NULL,
+                principioAtivo TEXT NOT NULL,
+                classificacaoToxicologica TEXT,
+                formulacao TEXT,
+                dosagemComercial REAL,
+                intervaloDeSeguranca INTEGER NOT NULL,
+                vigencia INTEGER
+              )
+            ''');
+            break;
+          case 'Gleba':
+            await db.execute('''
+              CREATE TABLE Gleba (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nomeIdentificador TEXT NOT NULL,
+                area REAL NOT NULL,
+                cultivar_id INTEGER,
+                FOREIGN KEY (cultivar_id) REFERENCES Cultivar(id)
+              )
+            ''');
+            break;
+          case 'Ciclo':
+            await db.execute('''
+              CREATE TABLE Ciclo (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                descricao TEXT NOT NULL
+              )
+            ''');
+            break;
+          case 'DoencaPraga':
+            await db.execute('''
+              CREATE TABLE DoencaPraga (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                descricaoCurta TEXT NOT NULL,
+                descricaoLonga TEXT
+              )
+            ''');
+            break;
+        }
+      }
     }
   }
 
@@ -179,4 +251,93 @@ class DBHelper {
       throw Exception("Erro ao deletar Gleba");
     }
   }
+
+  // ------------------ CRUD de Ciclos ------------------ //
+
+  Future<int> insertCiclo(Ciclo ciclo) async {
+    final db = await database;
+    return await db.insert('Ciclo', ciclo.toMap());
+  }
+
+  Future<List<Ciclo>> getCiclos() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('Ciclo');
+    return result.map((map) => Ciclo.fromMap(map)).toList();
+  }
+
+  Future<int> updateCiclo(Ciclo ciclo) async {
+    final db = await database;
+    return await db.update(
+      'Ciclo',
+      ciclo.toMap(),
+      where: 'id = ?',
+      whereArgs: [ciclo.id],
+    );
+  }
+
+  Future<int> deleteCiclo(int id) async {
+    final db = await database;
+    return await db.delete(
+      'Ciclo',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // ------------------ CRUD de DoencaPraga ------------------ //
+
+  Future<int> insertDoencaPraga(DoencaPraga doencaPraga) async {
+    try {
+      final db = await database;
+      return await db.insert('DoencaPraga', doencaPraga.toMap());
+    } catch (e) {
+      print("Erro ao inserir DoencaPraga: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<List<DoencaPraga>> getDoencasPragas() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> maps = await db.query('DoencaPraga');
+      return List.generate(maps.length, (i) {
+        return DoencaPraga.fromMap(maps[i]);
+      });
+    } catch (e) {
+      print("Erro ao buscar DoencaPraga: $e");
+      return []; // Retorna uma lista vazia em caso de erro
+    }
+  }
+
+  Future<int> updateDoencaPraga(DoencaPraga doencaPraga) async {
+    try {
+      final db = await database;
+      return await db.update(
+        'DoencaPraga',
+        doencaPraga.toMap(),
+        where: 'id = ?',
+        whereArgs: [doencaPraga.id],
+      );
+    } catch (e) {
+      print("Erro ao atualizar DoencaPraga: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<int> deleteDoencaPraga(int id) async {
+    try {
+      final db = await database;
+      return await db.delete(
+        'DoencaPraga',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print("Erro ao deletar DoencaPraga: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  getDoencaPragaById(int id) {}
+  // ------------------ CRUD de DoencaPraga ------------------ //
 }

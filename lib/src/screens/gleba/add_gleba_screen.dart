@@ -57,6 +57,10 @@ class _AddGlebaScreenState extends State<AddGlebaScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveGleba,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                backgroundColor: Colors.blue,
+              ),
               child: const Text('Salvar'),
             ),
           ],

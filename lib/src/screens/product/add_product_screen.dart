@@ -63,51 +63,86 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Product')),
+      appBar: AppBar(title: const Text('Adicionar Produto')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: <Widget>[
             TextField(
               controller: _tipoController,
-              decoration: const InputDecoration(labelText: 'Type'),
+              decoration: const InputDecoration(
+                labelText: 'Tipo',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _nomeComercialController,
-              decoration: const InputDecoration(labelText: 'Commercial Name'),
+              decoration: const InputDecoration(
+                labelText: 'Nome Comercial',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _principioAtivoController,
-              decoration: const InputDecoration(labelText: 'Active Ingredient'),
+              decoration: const InputDecoration(
+                labelText: 'Princípio Ativo',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _classificacaoToxicologicaController,
               decoration: const InputDecoration(
-                  labelText: 'Toxicological Classification'),
+                labelText: 'Classificação Toxicológica',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _formulacaoController,
-              decoration: const InputDecoration(labelText: 'Formulation'),
+              decoration: const InputDecoration(
+                labelText: 'Formulação',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _dosagemComercialController,
-              decoration: const InputDecoration(labelText: 'Commercial Dosage'),
+              decoration: const InputDecoration(
+                labelText: 'Dosagem Comercial',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
               keyboardType: TextInputType.number,
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _intervaloDeSegurancaController,
-              decoration: const InputDecoration(labelText: 'Safety Interval'),
+              decoration: const InputDecoration(
+                labelText: 'Intervalo de Segurança',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
               keyboardType: TextInputType.number,
+              style: TextStyle(fontSize: 18),
             ),
             TextField(
               controller: _vigenciaController,
-              decoration: const InputDecoration(labelText: 'Duration (Days)'),
+              decoration: const InputDecoration(
+                labelText: 'Vigência',
+                labelStyle: TextStyle(fontSize: 20),
+              ),
               keyboardType: TextInputType.number,
+              style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveProduct,
-              child: const Text('Save'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                backgroundColor: Colors.blue,
+              ),
+              child: const Text('Salvar'),
             ),
           ],
         ),

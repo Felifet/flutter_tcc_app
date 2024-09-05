@@ -32,24 +32,33 @@ class _GlebaListScreenState extends State<GlebaListScreen> {
       appBar: AppBar(
         title: const Text('Glebas'),
       ),
-      body: ListView.builder(
-        itemCount: _glebas.length,
-        itemBuilder: (context, index) {
-          final gleba = _glebas[index];
-          return ListTile(
-            title: Text(gleba.nomeIdentificador),
-            subtitle: Text('Área: ${gleba.area} ha'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GlebaEditScreen(gleba: gleba),
-                ),
-              ).then((_) => _loadGlebas());
-            },
-          );
-        },
-      ),
+      body: _glebas.isEmpty
+          ? const Center(child: Text('Nenhuma Gleba encontrada.'))
+          : ListView.separated(
+              itemCount: _glebas.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final gleba = _glebas[index];
+                return ListTile(
+                  title: Text(
+                    gleba.nomeIdentificador,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  subtitle: Text(
+                    'Área: ${gleba.area} ha',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GlebaEditScreen(gleba: gleba),
+                      ),
+                    ).then((_) => _loadGlebas());
+                  },
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/add_gleba').then((_) => _loadGlebas());
