@@ -1,4 +1,5 @@
 import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
+import 'package:flutter_tcc_app/src/models/cultivar_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
 import 'package:sqflite/sqflite.dart';
@@ -72,6 +73,13 @@ class DBHelper {
           descricaoCurta TEXT NOT NULL,
           descricaoLonga TEXT
         )
+        
+      ''');
+      await db.execute('''
+        CREATE TABLE Cultivar (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome TEXT NOT NULL
+        )
       ''');
     } catch (e) {
       print("Erro ao criar as tabelas: $e");
@@ -87,7 +95,7 @@ class DBHelper {
   }
 
   Future<void> _checkTables(Database db) async {
-    final tables = ['products', 'Gleba', 'Ciclo', 'DoencaPraga'];
+    final tables = ['products', 'Gleba', 'Ciclo', 'DoencaPraga', 'Cultivar'];
     for (String table in tables) {
       final result = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='$table'",
@@ -137,6 +145,15 @@ class DBHelper {
                 descricaoLonga TEXT
               )
             ''');
+            break;
+          case 'Cultivar':
+            await db.execute('''
+              CREATE TABLE Cultivar (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL
+              )
+            ''');
+            await _insertInitialCultivars(db);
             break;
         }
       }
@@ -339,5 +356,94 @@ class DBHelper {
   }
 
   getDoencaPragaById(int id) {}
-  // ------------------ CRUD de DoencaPraga ------------------ //
+  // ------------------ CRUD de Cultivares ------------------ //
+
+  Future<void> _insertInitialCultivars(Database db) async {
+    List<String> cultivares = [
+      'BRS Vitória',
+      'BRS Núbia',
+      'BRS Ísis',
+      'BRS Cora',
+      'BRS Magna',
+      'BRS Morena',
+      'BRS Clara',
+      'BRS Linda',
+      'BRS Violeta',
+      'BRS Carmem',
+      'Cabernet Sauvignon',
+      'Merlot',
+      'Chardonnay',
+      'Syrah',
+      'Pinot Noir',
+      'Sauvignon Blanc',
+      'Petit Verdot',
+      'Viognier',
+      'Malbec',
+      'Gamay',
+      'Sangiovese',
+      'Nebbiolo',
+      'Barbera',
+      'Moscato',
+      'Trebbiano',
+      'Montepulciano',
+      'Lambrusco',
+      'Verdicchio',
+      'Nero dAvola',
+      'Dolcetto',
+      'Tannat',
+      'Moscato Giallo',
+      'Ancellotta',
+      'Alicante Bouschet',
+      'Riesling Itálico',
+      'Tempranillo',
+      'Touriga Nacional',
+      'Arinarnoa',
+      'Ruby Cabernet',
+      'Grenache',
+      'Isabel',
+      'Bordô',
+      'Niagara Rosada',
+      'Niagara Branca',
+      'Concord',
+      'Seibel',
+      'Jacquez',
+      'Goethe',
+      'Isabel Precoce',
+      'Moscato Embrapa'
+    ];
+
+    for (String cultivar in cultivares) {
+      await db.insert('Cultivar', {'nome': cultivar});
+    }
+  }
+
+  Future<int> insertCultivar(Cultivar cultivar) async {
+    final db = await database;
+    return await db.insert('Cultivar', cultivar.toMap());
+  }
+
+  Future<List<Cultivar>> getCultivars() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('Cultivar');
+    return result.map((map) => Cultivar.fromMap(map)).toList();
+  }
+
+  Future<int> updateCultivar(Cultivar cultivar) async {
+    final db = await database;
+    return await db.update(
+      'Cultivar',
+      cultivar.toMap(),
+      where: 'id = ?',
+      whereArgs: [cultivar.id],
+    );
+  }
+
+  Future<int> deleteCultivar(int id) async {
+    final db = await database;
+    return await db.delete(
+      'Cultivar',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }
