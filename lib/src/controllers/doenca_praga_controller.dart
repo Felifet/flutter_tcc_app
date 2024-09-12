@@ -1,4 +1,5 @@
 import 'package:flutter_tcc_app/src/services/db_helper.dart';
+import 'package:flutter_tcc_app/src/services/doenca_praga_service.dart';
 import '../models/doenca_praga_model.dart';
 
 class DoencaPragaController {
@@ -50,9 +51,9 @@ class DoencaPragaController {
   // Retorna uma DoencaPraga pelo id
   Future<DoencaPraga?> getDoencaPragaById(int id) async {
     try {
-      final map = await _dbHelper.getDoencaPragaById(id);
-      if (map.isNotEmpty) {
-        return DoencaPraga.fromMap(map.first);
+      final doencaPragaMap = await _dbHelper.getDoencaPragaById(id);
+      if (doencaPragaMap != null) {
+        return DoencaPraga.fromMap(doencaPragaMap as Map<String, dynamic>);
       }
       return null;
     } catch (e) {

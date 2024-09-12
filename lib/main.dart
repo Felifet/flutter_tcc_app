@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:flutter_tcc_app/src/screens/cultivar/cultivar_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/add_doenca_praga_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/doenca_praga_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/doenca_praga_list_screen.dart';
+import 'package:flutter_tcc_app/src/screens/estagioFenologico/add_estagioFenologico_screen.dart';
+import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_list_screen.dart';
+import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
+import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/manejo/manejo_list_screen.dart';
 import 'src/screens/menu_screen.dart';
 import 'src/screens/product/product_list_screen.dart';
 import 'src/screens/product/add_product_screen.dart';
@@ -41,6 +48,26 @@ class MyApp extends StatelessWidget {
         '/add_doenca_praga': (context) => const AddDoencaPragaScreen(),
         '/edit_doenca_praga': (context) => const DoencaPragaEditScreen(),
         '/cultivares': (context) => CultivarListScreen(),
+        '/estagios_fenologicos': (context) =>
+            const EstagioFenologicoListScreen(),
+        '/add_estagio_fenologico': (context) =>
+            const AddEstagioFenologicoScreen(),
+        '/edit_estagio_fenologico': (context) {
+          final estagioId = ModalRoute.of(context)?.settings.arguments as int?;
+          return EstagioFenologicoEditScreen(
+              estagioId: estagioId ?? 0); // Trate o valor nulo aqui
+        },
+        '/manejos': (context) => const ManejoListScreen(),
+        '/add_manejo': (context) => const AddManejoScreen(),
+        '/edit_manejo': (context) {
+          final manejo = ModalRoute.of(context)?.settings.arguments as Manejo?;
+          return EditManejoScreen(
+              manejo: manejo ??
+                  Manejo(
+                      id: 0,
+                      nome: '',
+                      descricao: '')); // Trate o valor nulo aqui
+        },
       },
     );
   }

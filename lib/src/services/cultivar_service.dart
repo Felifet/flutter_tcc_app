@@ -5,7 +5,7 @@ class CultivarService {
   final DBHelper _dbHelper = DBHelper();
 
   Future<List<Cultivar>> getAllCultivares() async {
-    return await _dbHelper.getCultivars();
+    return await _dbHelper.getCultivares();
   }
 
   Future<void> addCultivar(Cultivar cultivar) async {

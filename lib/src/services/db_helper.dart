@@ -2,6 +2,7 @@ import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/models/cultivar_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
+import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -73,14 +74,31 @@ class DBHelper {
           descricaoCurta TEXT NOT NULL,
           descricaoLonga TEXT
         )
-        
       ''');
+
       await db.execute('''
         CREATE TABLE Cultivar (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           nome TEXT NOT NULL
         )
       ''');
+
+      await db.execute('''
+        CREATE TABLE Manejo (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome TEXT NOT NULL,
+          descricao TEXT NOT NULL
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE EstagioFenologico (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          descricao TEXT NOT NULL
+        )
+      ''');
+
+      await _insertInitialCultivars(db);
     } catch (e) {
       print("Erro ao criar as tabelas: $e");
       throw Exception("Erro ao criar as tabelas");
@@ -89,13 +107,20 @@ class DBHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < newVersion) {
-      // Adicionar comandos de migração conforme necessário
       print("Atualizando banco de dados de $oldVersion para $newVersion");
     }
   }
 
   Future<void> _checkTables(Database db) async {
-    final tables = ['products', 'Gleba', 'Ciclo', 'DoencaPraga', 'Cultivar'];
+    final tables = [
+      'products',
+      'Gleba',
+      'Ciclo',
+      'DoencaPraga',
+      'Cultivar',
+      'Manejo',
+      'EstagioFenologico'
+    ];
     for (String table in tables) {
       final result = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='$table'",
@@ -155,6 +180,23 @@ class DBHelper {
             ''');
             await _insertInitialCultivars(db);
             break;
+          case 'Manejo':
+            await db.execute('''
+              CREATE TABLE Manejo (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                descricao TEXT NOT NULL
+              )
+            ''');
+            break;
+          case 'EstagioFenologico':
+            await db.execute('''
+              CREATE TABLE EstagioFenologico (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                descricao TEXT NOT NULL
+              )
+            ''');
+            break;
         }
       }
     }
@@ -162,29 +204,26 @@ class DBHelper {
 
   // ------------------ CRUD de Produtos ------------------ //
 
-  // Inserir produto
   Future<int> insertProduct(Map<String, dynamic> product) async {
     try {
       final db = await database;
       return await db.insert('products', product);
     } catch (e) {
       print("Erro ao inserir produto: $e");
-      return -1; // Retorna um código de erro personalizado
+      return -1;
     }
   }
 
-  // Consultar todos os produtos
   Future<List<Map<String, dynamic>>> getProducts() async {
     try {
       final db = await database;
       return await db.query('products');
     } catch (e) {
       print("Erro ao buscar produtos: $e");
-      return []; // Retorna uma lista vazia em caso de erro
+      return [];
     }
   }
 
-  // Atualizar produto
   Future<int> updateProduct(Map<String, dynamic> product) async {
     try {
       final db = await database;
@@ -196,35 +235,32 @@ class DBHelper {
       );
     } catch (e) {
       print("Erro ao atualizar produto: $e");
-      return -1; // Retorna um código de erro personalizado
+      return -1;
     }
   }
 
-  // Deletar produto
   Future<int> deleteProduct(int id) async {
     try {
       final db = await database;
       return await db.delete('products', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       print("Erro ao deletar produto: $e");
-      return -1; // Retorna um código de erro personalizado
+      return -1;
     }
   }
 
   // ------------------ CRUD de Glebas ------------------ //
 
-  // Inserir Gleba
   Future<int> insertGleba(Gleba gleba) async {
     try {
       final db = await database;
       return await db.insert('Gleba', gleba.toMap());
     } catch (e) {
       print("Erro ao inserir Gleba: $e");
-      return -1; // Retorna um código de erro personalizado
+      return -1;
     }
   }
 
-  // Buscar todas as Glebas
   Future<List<Gleba>> getGlebas() async {
     try {
       final db = await database;
@@ -234,11 +270,10 @@ class DBHelper {
       });
     } catch (e) {
       print("Erro ao buscar Glebas: $e");
-      return []; // Retorna uma lista vazia em caso de erro
+      return [];
     }
   }
 
-  // Atualizar Gleba
   Future<int> updateGleba(Gleba gleba) async {
     try {
       final db = await database;
@@ -250,19 +285,14 @@ class DBHelper {
       );
     } catch (e) {
       print("Erro ao atualizar Gleba: $e");
-      return -1; // Retorna um código de erro personalizado
+      return -1;
     }
   }
 
-  // Excluir Gleba
   Future<void> deleteGleba(int id) async {
     try {
       final db = await database;
-      await db.delete(
-        'Gleba',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await db.delete('Gleba', where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       print("Erro ao deletar Gleba: $e");
       throw Exception("Erro ao deletar Gleba");
@@ -294,72 +324,80 @@ class DBHelper {
 
   Future<int> deleteCiclo(int id) async {
     final db = await database;
-    return await db.delete(
-      'Ciclo',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('Ciclo', where: 'id = ?', whereArgs: [id]);
   }
 
-  // ------------------ CRUD de DoencaPraga ------------------ //
+  // ------------------ CRUD de Doenca/Praga ------------------ //
 
   Future<int> insertDoencaPraga(DoencaPraga doencaPraga) async {
-    try {
-      final db = await database;
-      return await db.insert('DoencaPraga', doencaPraga.toMap());
-    } catch (e) {
-      print("Erro ao inserir DoencaPraga: $e");
-      return -1; // Retorna um código de erro personalizado
-    }
+    final db = await database;
+    return await db.insert('DoencaPraga', doencaPraga.toMap());
   }
 
   Future<List<DoencaPraga>> getDoencasPragas() async {
-    try {
-      final db = await database;
-      final List<Map<String, dynamic>> maps = await db.query('DoencaPraga');
-      return List.generate(maps.length, (i) {
-        return DoencaPraga.fromMap(maps[i]);
-      });
-    } catch (e) {
-      print("Erro ao buscar DoencaPraga: $e");
-      return []; // Retorna uma lista vazia em caso de erro
-    }
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('DoencaPraga');
+    return result.map((map) => DoencaPraga.fromMap(map)).toList();
   }
 
   Future<int> updateDoencaPraga(DoencaPraga doencaPraga) async {
-    try {
-      final db = await database;
-      return await db.update(
-        'DoencaPraga',
-        doencaPraga.toMap(),
-        where: 'id = ?',
-        whereArgs: [doencaPraga.id],
-      );
-    } catch (e) {
-      print("Erro ao atualizar DoencaPraga: $e");
-      return -1; // Retorna um código de erro personalizado
-    }
+    final db = await database;
+    return await db.update(
+      'DoencaPraga',
+      doencaPraga.toMap(),
+      where: 'id = ?',
+      whereArgs: [doencaPraga.id],
+    );
   }
 
   Future<int> deleteDoencaPraga(int id) async {
-    try {
-      final db = await database;
-      return await db.delete(
-        'DoencaPraga',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    } catch (e) {
-      print("Erro ao deletar DoencaPraga: $e");
-      return -1; // Retorna um código de erro personalizado
-    }
+    final db = await database;
+    return await db.delete('DoencaPraga', where: 'id = ?', whereArgs: [id]);
   }
 
-  getDoencaPragaById(int id) {}
+  Future<Map<String, dynamic>?> getDoencaPragaById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'DoencaPraga',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
   // ------------------ CRUD de Cultivares ------------------ //
 
+  Future<int> insertCultivar(Cultivar cultivar) async {
+    final db = await database;
+    return await db.insert('Cultivar', cultivar.toMap());
+  }
+
+  Future<List<Cultivar>> getCultivares() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('Cultivar');
+    return result.map((map) => Cultivar.fromMap(map)).toList();
+  }
+
+  Future<int> updateCultivar(Cultivar cultivar) async {
+    final db = await database;
+    return await db.update(
+      'Cultivar',
+      cultivar.toMap(),
+      where: 'id = ?',
+      whereArgs: [cultivar.id],
+    );
+  }
+
+  Future<int> deleteCultivar(int id) async {
+    final db = await database;
+    return await db.delete('Cultivar', where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<void> _insertInitialCultivars(Database db) async {
-    List<String> cultivares = [
+    final cultivares = [
       'BRS Vitória',
       'BRS Núbia',
       'BRS Ísis',
@@ -388,7 +426,7 @@ class DBHelper {
       'Montepulciano',
       'Lambrusco',
       'Verdicchio',
-      'Nero dAvola',
+      'Nero d’Avola',
       'Dolcetto',
       'Tannat',
       'Moscato Giallo',
@@ -412,38 +450,89 @@ class DBHelper {
       'Moscato Embrapa'
     ];
 
-    for (String cultivar in cultivares) {
-      await db.insert('Cultivar', {'nome': cultivar});
+    for (String nome in cultivares) {
+      await db.insert('Cultivar', {'nome': nome});
     }
   }
 
-  Future<int> insertCultivar(Cultivar cultivar) async {
+  // ------------------ CRUD de Manejos ------------------ //
+
+  Future<int> insertManejo(Manejo manejo) async {
     final db = await database;
-    return await db.insert('Cultivar', cultivar.toMap());
+    return await db.insert('Manejo', manejo.toMap());
   }
 
-  Future<List<Cultivar>> getCultivars() async {
+  Future<List<Manejo>> getManejos() async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db.query('Cultivar');
-    return result.map((map) => Cultivar.fromMap(map)).toList();
+    final List<Map<String, dynamic>> result = await db.query('Manejo');
+    return result.map((map) => Manejo.fromMap(map)).toList();
   }
 
-  Future<int> updateCultivar(Cultivar cultivar) async {
+  Future<int> updateManejo(Manejo manejo) async {
     final db = await database;
     return await db.update(
-      'Cultivar',
-      cultivar.toMap(),
+      'Manejo',
+      manejo.toMap(),
       where: 'id = ?',
-      whereArgs: [cultivar.id],
+      whereArgs: [manejo.id],
     );
   }
 
-  Future<int> deleteCultivar(int id) async {
+  Future<int> deleteManejo(int id) async {
     final db = await database;
-    return await db.delete(
-      'Cultivar',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('Manejo', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ------------------ CRUD de Estágio Fenológico ------------------ //
+
+  Future<int> insertEstagioFenologico(
+      Map<String, dynamic> estagioFenologico) async {
+    try {
+      final db = await database;
+      return await db.insert('EstagioFenologico', estagioFenologico);
+    } catch (e) {
+      print("Erro ao inserir Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getEstagiosFenologicos() async {
+    try {
+      final db = await database;
+      return await db.query('EstagioFenologico');
+    } catch (e) {
+      print("Erro ao buscar Estágios Fenológicos: $e");
+      return []; // Retorna uma lista vazia em caso de erro
+    }
+  }
+
+  Future<int> updateEstagioFenologico(
+      Map<String, dynamic> estagioFenologico) async {
+    try {
+      final db = await database;
+      return await db.update(
+        'EstagioFenologico',
+        estagioFenologico,
+        where: 'id = ?',
+        whereArgs: [estagioFenologico['id']],
+      );
+    } catch (e) {
+      print("Erro ao atualizar Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<int> deleteEstagioFenologico(int id) async {
+    try {
+      final db = await database;
+      return await db.delete(
+        'EstagioFenologico',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print("Erro ao deletar Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
   }
 }
