@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+  MenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,44 +16,77 @@ class MenuScreen extends StatelessWidget {
         ),
         centerTitle: true, // Centralizar o título
       ),
-      body: Center(
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16.0),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3, // Número de colunas
+          crossAxisSpacing: 16.0, // Espaçamento horizontal entre os itens
+          mainAxisSpacing: 16.0, // Espaçamento vertical entre os itens
+        ),
+        itemCount: _menuItems.length,
+        itemBuilder: (context, index) {
+          final item = _menuItems[index];
+          return _buildMenuButton(context, item.label, item.route, item.icon);
+        },
+      ),
+    );
+  }
+
+  // Lista de itens do menu com ícones, rótulos e rotas
+  final List<MenuItem> _menuItems = [
+    MenuItem(label: 'Produtos', route: '/products', icon: Icons.shopping_cart),
+    MenuItem(label: 'Glebas', route: '/glebas', icon: Icons.landscape),
+    MenuItem(label: 'Ciclos', route: '/ciclos', icon: Icons.autorenew),
+    MenuItem(
+        label: 'Doenças/Pragas', route: '/doencas_pragas', icon: Icons.warning),
+    MenuItem(label: 'Cultivares', route: '/cultivares', icon: Icons.grass),
+    MenuItem(
+        label: 'Estágios Fenológicos',
+        route: '/estagios_fenologicos',
+        icon: Icons.calendar_today),
+    MenuItem(label: 'Manejos', route: '/manejos', icon: Icons.adjust),
+    MenuItem(
+        label: 'Registrar Manejo',
+        route: '/add_registro_manejo',
+        icon: Icons.add),
+    MenuItem(label: 'Backup', route: '/backup', icon: Icons.backup),
+  ];
+
+  // Método para construir os botões do menu
+  Widget _buildMenuButton(
+      BuildContext context, String label, String route, IconData icon) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, route);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(12.0),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _buildMenuButton(context, 'Produtos', '/products'),
-            _buildMenuButton(context, 'Glebas', '/glebas'),
-            _buildMenuButton(context, 'Ciclos', '/ciclos'),
-            _buildMenuButton(context, 'Doenças/Pragas', '/doencas_pragas'),
-            _buildMenuButton(context, 'Cultivares', '/cultivares'),
-            _buildMenuButton(
-                context, 'Estágios Fenológicos', '/estagios_fenologicos'),
-            _buildMenuButton(
-                context, 'Manejos', '/manejos'), // Novo item adicionado
-            _buildMenuButton(context, 'Backup',
-                '/backup'), // Ajuste para a funcionalidade de backup futura
+            Icon(icon, size: 40.0, color: Colors.white), // Ícone
+            const SizedBox(height: 8.0),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 16.0),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildMenuButton(BuildContext context, String label, String route) {
-    return Container(
-      margin: const EdgeInsets.symmetric(
-          vertical: 8.0), // Espaçamento entre os botões
-      width: 200, // Largura fixa para todos os botões
-      height: 60, // Altura fixa para todos os botões
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushNamed(context, route);
-        },
-        style: ElevatedButton.styleFrom(
-          textStyle: const TextStyle(fontSize: 20.0),
-          backgroundColor: Colors
-              .blue, // Cor de fundo dos botões (pode ser ajustada conforme necessário)
-        ),
-        child: Text(label, textAlign: TextAlign.center),
-      ),
-    );
-  }
+// Classe para definir os itens do menu
+class MenuItem {
+  final String label;
+  final String route;
+  final IconData icon;
+
+  MenuItem({required this.label, required this.route, required this.icon});
 }

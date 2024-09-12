@@ -10,6 +10,7 @@ import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_list_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_manejo/add_registro_manejo_screen.dart';
 import 'src/screens/menu_screen.dart';
 import 'src/screens/product/product_list_screen.dart';
 import 'src/screens/product/add_product_screen.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark(),
       initialRoute: '/',
       routes: {
-        '/': (context) => const MenuScreen(),
+        '/': (context) => MenuScreen(),
         '/products': (context) => const ProductListScreen(),
         '/add_product': (context) => const AddProductScreen(),
         '/edit_product': (context) => const ProductEditScreen(),
@@ -68,6 +69,7 @@ class MyApp extends StatelessWidget {
                       nome: '',
                       descricao: '')); // Trate o valor nulo aqui
         },
+        '/add_registro_manejo': (context) => const AddRegistroManejoScreen(),
       },
     );
   }

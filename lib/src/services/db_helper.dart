@@ -97,6 +97,18 @@ class DBHelper {
           descricao TEXT NOT NULL
         )
       ''');
+      await db.execute('''
+      CREATE TABLE RegistroManejo (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        datetime TEXT NOT NULL,
+        ciclo_id INTEGER,
+        gleba_id INTEGER,
+        manejo_id INTEGER,
+        FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE,
+        FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+        FOREIGN KEY (manejo_id) REFERENCES Manejo(id) ON DELETE CASCADE
+      );
+    ''');
 
       await _insertInitialCultivars(db);
     } catch (e) {
@@ -532,6 +544,57 @@ class DBHelper {
       );
     } catch (e) {
       print("Erro ao deletar Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+  // ------------------ CRUD de Registro Manejo ------------------ //
+
+  Future<int> insertRegistroManejo(Map<String, dynamic> registroManejo) async {
+    try {
+      final db = await database;
+      return await db.insert('RegistroManejo', registroManejo);
+    } catch (e) {
+      print("Erro ao inserir Registro de Manejo: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getRegistrosManejo() async {
+    try {
+      final db = await database;
+      return await db.query('RegistroManejo');
+    } catch (e) {
+      print("Erro ao buscar Registros de Manejo: $e");
+      return []; // Retorna uma lista vazia em caso de erro
+    }
+  }
+
+  Future<int> updateRegistroManejo(
+      Map<String, dynamic> registroManejo, int id) async {
+    try {
+      final db = await database;
+      return await db.update(
+        'RegistroManejo',
+        registroManejo,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print("Erro ao atualizar Registro de Manejo: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+  Future<int> deleteRegistroManejo(int id) async {
+    try {
+      final db = await database;
+      return await db.delete(
+        'RegistroManejo',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print("Erro ao deletar Registro de Manejo: $e");
       return -1; // Retorna um código de erro personalizado
     }
   }
