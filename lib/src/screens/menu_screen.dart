@@ -47,7 +47,7 @@ class MenuScreen extends StatelessWidget {
     MenuItem(label: 'Manejos', route: '/manejos', icon: Icons.adjust),
     MenuItem(
         label: 'Registrar Manejo',
-        route: '/add_registro_manejo',
+        route: '/registro_manejo_list',
         icon: Icons.add),
     MenuItem(label: 'Backup', route: '/backup', icon: Icons.backup),
   ];

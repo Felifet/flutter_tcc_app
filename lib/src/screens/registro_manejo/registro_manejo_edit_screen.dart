@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/controllers/registro_manejo_controller.dart';
-import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
 import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
 import 'package:flutter_tcc_app/src/services/ciclo_service.dart';
 import 'package:flutter_tcc_app/src/services/gleba_service.dart';
 import 'package:flutter_tcc_app/src/services/manejo_service.dart';
 
-class AddRegistroManejoScreen extends StatefulWidget {
-  const AddRegistroManejoScreen({super.key});
+class RegistroManejoEditScreen extends StatefulWidget {
+  final RegistroManejo? registroManejo;
+
+  const RegistroManejoEditScreen({Key? key, this.registroManejo})
+      : super(key: key);
 
   @override
-  _AddRegistroManejoScreenState createState() =>
-      _AddRegistroManejoScreenState();
+  _RegistroManejoEditScreenState createState() =>
+      _RegistroManejoEditScreenState();
 }
 
-class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
-  final _formKey = GlobalKey<FormState>();
+class _RegistroManejoEditScreenState extends State<RegistroManejoEditScreen> {
   final RegistroManejoController _controller = RegistroManejoController();
+  final _formKey = GlobalKey<FormState>();
 
-  DateTime _selectedDate = DateTime.now();
-  int? _cicloId;
-  int? _glebaId;
-  int? _manejoId;
+  // Campos de seleção
+  int? selectedCicloId;
+  int? selectedGlebaId;
+  int? selectedManejoId;
 
   late Future<List<Ciclo>> _ciclosFuture;
   late Future<List<Gleba>> _glebasFuture;
@@ -35,22 +38,12 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
     _ciclosFuture = CicloService().getCiclos();
     _glebasFuture = GlebaService().getGlebas();
     _manejosFuture = ManejoService().getManejos();
-  }
 
-  Future<void> _saveRegistroManejo() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      if (_cicloId != null && _glebaId != null && _manejoId != null) {
-        RegistroManejo novoRegistro = RegistroManejo(
-          id: 0,
-          datetime: _selectedDate,
-          cicloId: _cicloId!,
-          glebaId: _glebaId!,
-          manejoId: _manejoId!,
-        );
-        await _controller.saveRegistroManejo(novoRegistro);
-        Navigator.pop(context); // Volta para a lista após salvar
-      }
+    // Preenche com os dados existentes, se estiver editando
+    if (widget.registroManejo != null) {
+      selectedCicloId = widget.registroManejo!.cicloId;
+      selectedGlebaId = widget.registroManejo!.glebaId;
+      selectedManejoId = widget.registroManejo!.manejoId;
     }
   }
 
@@ -58,36 +51,15 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar Registro de Manejo'),
+        title: const Text('Editar Registro de Manejo'),
       ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
           child: Column(
             children: [
-              // Data Picker
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Data do Manejo'),
-                readOnly: true,
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _selectedDate = pickedDate;
-                    });
-                  }
-                },
-                initialValue: _selectedDate.toLocal().toString().split(' ')[0],
-              ),
-              const SizedBox(height: 16),
-
-              // Campo cicloId
+              // Campo de seleção para Ciclo
               FutureBuilder<List<Ciclo>>(
                 future: _ciclosFuture,
                 builder: (context, snapshot) {
@@ -99,10 +71,10 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
                     return const Text('Nenhum ciclo encontrado');
                   } else {
                     return DropdownButtonFormField<int>(
-                      value: _cicloId,
+                      value: selectedCicloId,
                       onChanged: (value) {
                         setState(() {
-                          _cicloId = value;
+                          selectedCicloId = value;
                         });
                       },
                       items: snapshot.data!.map((ciclo) {
@@ -123,7 +95,7 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Campo glebaId
+              // Campo de seleção para Gleba
               FutureBuilder<List<Gleba>>(
                 future: _glebasFuture,
                 builder: (context, snapshot) {
@@ -135,10 +107,10 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
                     return const Text('Nenhuma gleba encontrada');
                   } else {
                     return DropdownButtonFormField<int>(
-                      value: _glebaId,
+                      value: selectedGlebaId,
                       onChanged: (value) {
                         setState(() {
-                          _glebaId = value;
+                          selectedGlebaId = value;
                         });
                       },
                       items: snapshot.data!.map((gleba) {
@@ -159,7 +131,7 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Campo manejoId
+              // Campo de seleção para Manejo
               FutureBuilder<List<Manejo>>(
                 future: _manejosFuture,
                 builder: (context, snapshot) {
@@ -171,10 +143,10 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
                     return const Text('Nenhum manejo encontrado');
                   } else {
                     return DropdownButtonFormField<int>(
-                      value: _manejoId,
+                      value: selectedManejoId,
                       onChanged: (value) {
                         setState(() {
-                          _manejoId = value;
+                          selectedManejoId = value;
                         });
                       },
                       items: snapshot.data!.map((manejo) {
@@ -197,7 +169,19 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
 
               // Botão para salvar
               ElevatedButton(
-                onPressed: _saveRegistroManejo,
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    // Chama o método para salvar o registro de manejo
+                    _controller.saveRegistroManejo(RegistroManejo(
+                      id: widget.registroManejo?.id ?? 0,
+                      datetime: DateTime.now(),
+                      cicloId: selectedCicloId!,
+                      glebaId: selectedGlebaId!,
+                      manejoId: selectedManejoId!,
+                    ));
+                    Navigator.pop(context);
+                  }
+                },
                 child: const Text('Salvar'),
               ),
             ],

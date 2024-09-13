@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc_app/src/controllers/registro_manejo_controller.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart'; // Import do model de RegistroManejo
 import 'package:flutter_tcc_app/src/screens/cultivar/cultivar_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/add_doenca_praga_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/doenca_praga_edit_screen.dart';
@@ -11,6 +13,8 @@ import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/add_registro_manejo_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_list_screen.dart';
 import 'src/screens/menu_screen.dart';
 import 'src/screens/product/product_list_screen.dart';
 import 'src/screens/product/add_product_screen.dart';
@@ -63,13 +67,24 @@ class MyApp extends StatelessWidget {
         '/edit_manejo': (context) {
           final manejo = ModalRoute.of(context)?.settings.arguments as Manejo?;
           return EditManejoScreen(
-              manejo: manejo ??
-                  Manejo(
-                      id: 0,
-                      nome: '',
-                      descricao: '')); // Trate o valor nulo aqui
+              manejo: manejo ?? Manejo(id: 0, nome: '', descricao: ''));
         },
         '/add_registro_manejo': (context) => const AddRegistroManejoScreen(),
+        '/registro_manejo_list': (context) => const RegistroManejoListScreen(),
+      },
+      // Adição da rota onGenerateRoute para editar o registro de manejo
+      onGenerateRoute: (settings) {
+        if (settings.name == '/registro_manejo_edit') {
+          final RegistroManejo registroManejo =
+              settings.arguments as RegistroManejo;
+
+          return MaterialPageRoute(
+            builder: (context) {
+              return RegistroManejoEditScreen(registroManejo: registroManejo);
+            },
+          );
+        }
+        return null;
       },
     );
   }
