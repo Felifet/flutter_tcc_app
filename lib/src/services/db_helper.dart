@@ -131,7 +131,8 @@ class DBHelper {
       'DoencaPraga',
       'Cultivar',
       'Manejo',
-      'EstagioFenologico'
+      'EstagioFenologico',
+      'RegistroManejo'
     ];
     for (String table in tables) {
       final result = await db.rawQuery(
@@ -209,6 +210,19 @@ class DBHelper {
               )
             ''');
             break;
+          case 'RegistroManejo':
+            await db.execute('''
+              CREATE TABLE RegistroManejo (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              datetime TEXT NOT NULL,
+              ciclo_id INTEGER,
+              gleba_id INTEGER,
+              manejo_id INTEGER,
+              FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE,
+              FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+              FOREIGN KEY (manejo_id) REFERENCES Manejo(id) ON DELETE CASCADE
+            );
+            ''');
         }
       }
     }

@@ -19,7 +19,7 @@ class MenuScreen extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, // Número de colunas
+          crossAxisCount: 2, // Atualizado para 2 colunas
           crossAxisSpacing: 16.0, // Espaçamento horizontal entre os itens
           mainAxisSpacing: 16.0, // Espaçamento vertical entre os itens
         ),
@@ -70,10 +70,16 @@ class MenuScreen extends StatelessWidget {
           children: <Widget>[
             Icon(icon, size: 40.0, color: Colors.white), // Ícone
             const SizedBox(height: 8.0),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 16.0),
+            Expanded(
+              child: Center(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 16.0),
+                  overflow: TextOverflow
+                      .ellipsis, // Adiciona reticências para texto longo
+                ),
+              ),
             ),
           ],
         ),

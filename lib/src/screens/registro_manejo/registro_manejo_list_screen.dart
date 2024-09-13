@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/controllers/registro_manejo_controller.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
+import 'package:intl/intl.dart'; // Adicione esta importação
 
 class RegistroManejoListScreen extends StatefulWidget {
   const RegistroManejoListScreen({super.key});
@@ -28,6 +29,7 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final DateFormat dateFormat = DateFormat('dd.MM.yyyy');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registros de Manejo'),
@@ -49,8 +51,9 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
               itemBuilder: (context, index) {
                 final registro = registros[index];
                 return ListTile(
-                  title: Text('ID: ${registro.id}'),
-                  subtitle: Text('Data: ${registro.datetime.toLocal()}'),
+                  title: Text(
+                      'Data Registro: ${dateFormat.format(registro.datetime.toLocal())}'),
+                  subtitle: Text('Gleba ID: ${registro.glebaId}'),
                   onTap: () {
                     Navigator.pushNamed(
                       context,
