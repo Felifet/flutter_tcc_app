@@ -42,7 +42,7 @@ class _AddRegistroManejoScreenState extends State<AddRegistroManejoScreen> {
       _formKey.currentState!.save();
       if (_cicloId != null && _glebaId != null && _manejoId != null) {
         RegistroManejo novoRegistro = RegistroManejo(
-          id: 0,
+          id: null,
           datetime: _selectedDate,
           cicloId: _cicloId!,
           glebaId: _glebaId!,

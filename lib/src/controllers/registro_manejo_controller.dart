@@ -19,13 +19,13 @@ class RegistroManejoController {
   // Método para salvar um registro de manejo (inserir ou atualizar)
   Future<int> saveRegistroManejo(RegistroManejo registroManejo) async {
     try {
-      if (registroManejo.id == 0) {
-        // Inserir novo registro
+      if (registroManejo.id == null) {
+        // Insere novo registro apenas se id for null
         return await _dbHelper.insertRegistroManejo(registroManejo.toMap());
       } else {
-        // Atualizar registro existente
+        // Atualiza registro existente
         return await _dbHelper.updateRegistroManejo(
-            registroManejo.toMap(), registroManejo.id);
+            registroManejo.toMap(), registroManejo.id!);
       }
     } catch (e) {
       print("Erro ao salvar registro de manejo: $e");

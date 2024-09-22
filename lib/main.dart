@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/controllers/registro_manejo_controller.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart'; // Import do model de RegistroManejo
 import 'package:flutter_tcc_app/src/screens/cultivar/cultivar_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/add_doenca_praga_screen.dart';
@@ -12,6 +13,9 @@ import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_list_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_estagioFenologico/add_registro_fenologico_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_estagioFenologico/registro_fenologico_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/registro_estagioFenologico/registro_fenologico_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/add_registro_manejo_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_list_screen.dart';
@@ -59,8 +63,7 @@ class MyApp extends StatelessWidget {
             const AddEstagioFenologicoScreen(),
         '/edit_estagio_fenologico': (context) {
           final estagioId = ModalRoute.of(context)?.settings.arguments as int?;
-          return EstagioFenologicoEditScreen(
-              estagioId: estagioId ?? 0); // Trate o valor nulo aqui
+          return EstagioFenologicoEditScreen(estagioId: estagioId ?? 0);
         },
         '/manejos': (context) => const ManejoListScreen(),
         '/add_manejo': (context) => const AddManejoScreen(),
@@ -71,8 +74,16 @@ class MyApp extends StatelessWidget {
         },
         '/add_registro_manejo': (context) => const AddRegistroManejoScreen(),
         '/registro_manejo_list': (context) => const RegistroManejoListScreen(),
+        '/add_registro_estagio': (context) => const AddRegistroEstagioScreen(),
+        '/registro_estagio_list': (context) =>
+            const RegistroEstagioListScreen(),
+        '/edit_registro_estagio': (context) {
+          final RegistroEstagioFenologico registroEstagio =
+              ModalRoute.of(context)?.settings.arguments
+                  as RegistroEstagioFenologico;
+          return EditRegistroEstagioScreen(registroEstagio: registroEstagio);
+        },
       },
-      // Adição da rota onGenerateRoute para editar o registro de manejo
       onGenerateRoute: (settings) {
         if (settings.name == '/registro_manejo_edit') {
           final RegistroManejo registroManejo =

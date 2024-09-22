@@ -3,6 +3,7 @@ import 'package:flutter_tcc_app/src/models/cultivar_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -109,6 +110,18 @@ class DBHelper {
         FOREIGN KEY (manejo_id) REFERENCES Manejo(id) ON DELETE CASCADE
       );
     ''');
+      await db.execute('''
+      CREATE TABLE RegistroEstagio (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        datetime TEXT NOT NULL,
+        ciclo_id INTEGER,
+        gleba_id INTEGER,
+        estagioFenologico_id INTEGER,
+        FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE,
+        FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+        FOREIGN KEY (estagioFenologico_id) REFERENCES EstagioFenologico(id) ON DELETE CASCADE
+      );
+    ''');
 
       await _insertInitialCultivars(db);
     } catch (e) {
@@ -132,7 +145,8 @@ class DBHelper {
       'Cultivar',
       'Manejo',
       'EstagioFenologico',
-      'RegistroManejo'
+      'RegistroManejo',
+      'RegistroEstagio'
     ];
     for (String table in tables) {
       final result = await db.rawQuery(
@@ -222,6 +236,19 @@ class DBHelper {
               FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
               FOREIGN KEY (manejo_id) REFERENCES Manejo(id) ON DELETE CASCADE
             );
+            ''');
+          case 'RegistroManejo':
+            await db.execute('''
+                CREATE TABLE RegistroEstagio (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                datetime TEXT NOT NULL,
+                ciclo_id INTEGER,
+                gleba_id INTEGER,
+                estagioFenologico_id INTEGER,
+                FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE,
+                FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+                FOREIGN KEY (estagioFenologico_id) REFERENCES EstagioFenologico(id) ON DELETE CASCADE
+              );
             ''');
         }
       }
@@ -612,4 +639,62 @@ class DBHelper {
       return -1; // Retorna um código de erro personalizado
     }
   }
+
+// ------------------ CRUD de Registro Estagio Fenologico ------------------ //
+
+// Método para inserir um novo Registro de Estágio Fenológico
+  Future<int> insertRegistroEstagioFenologico(
+      RegistroEstagioFenologico registro) async {
+    final db = await database;
+    return await db.insert('RegistroEstagio', registro.toMap());
+  }
+
+// Método para obter todos os Registros de Estágio Fenológico
+  Future<List<RegistroEstagioFenologico>>
+      getRegistrosEstagioFenologico() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('RegistroEstagio');
+    return result.map((map) => RegistroEstagioFenologico.fromMap(map)).toList();
+  }
+
+// Método para obter um Registro de Estágio Fenológico pelo ID
+  Future<RegistroEstagioFenologico?> getRegistroEstagioFenologicoById(
+      int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'RegistroEstagio',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      return RegistroEstagioFenologico.fromMap(result.first);
+    } else {
+      return null; // Retorna null se não encontrar o registro
+    }
+  }
+
+// Método para atualizar um Registro de Estágio Fenológico existente
+  Future<int> updateRegistroEstagioFenologico(
+      RegistroEstagioFenologico registro) async {
+    final db = await database;
+    return await db.update(
+      'RegistroEstagio',
+      registro.toMap(),
+      where: 'id = ?',
+      whereArgs: [registro.id],
+    );
+  }
+
+// Método para deletar um Registro de Estágio Fenológico
+  Future<int> deleteRegistroEstagioFenologico(int id) async {
+    final db = await database;
+    return await db.delete(
+      'RegistroEstagio',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // chave final
 }

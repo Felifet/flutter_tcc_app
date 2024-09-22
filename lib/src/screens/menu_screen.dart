@@ -49,6 +49,10 @@ class MenuScreen extends StatelessWidget {
         label: 'Registrar Manejo',
         route: '/registro_manejo_list',
         icon: Icons.add),
+    MenuItem(
+        label: 'Registrar Estágio Fenológico',
+        route: '/registro_estagio_list',
+        icon: Icons.add),
     MenuItem(label: 'Backup', route: '/backup', icon: Icons.backup),
   ];
 

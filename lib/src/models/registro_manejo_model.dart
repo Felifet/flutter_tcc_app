@@ -1,12 +1,12 @@
 class RegistroManejo {
-  final int id;
+  final int? id;
   final DateTime datetime;
   final int cicloId;
   final int glebaId;
   final int manejoId;
 
   RegistroManejo({
-    required this.id,
+    this.id, // Corrigido para permitir null
     required this.datetime,
     required this.cicloId,
     required this.glebaId,
@@ -25,7 +25,7 @@ class RegistroManejo {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'id': id, // Permite null para inserções
       'datetime': datetime.toIso8601String(),
       'ciclo_id': cicloId,
       'gleba_id': glebaId,
