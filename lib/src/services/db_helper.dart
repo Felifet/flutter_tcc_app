@@ -1,5 +1,7 @@
+import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/models/cultivar_model.dart';
+import 'package:flutter_tcc_app/src/models/estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
@@ -122,6 +124,23 @@ class DBHelper {
         FOREIGN KEY (estagioFenologico_id) REFERENCES EstagioFenologico(id) ON DELETE CASCADE
       );
     ''');
+      await db.execute('''
+      CREATE TABLE Aplicacao (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        datetime TEXT NOT NULL,
+        volumeCalda REAL NOT NULL,
+        volumeProduto REAL NOT NULL,
+        motivo TEXT CHECK( motivo IN ('Doença (Prevenção)', 'Doença (Remediação)', 'Praga', 'Estímulo para brotação', 'Adubação Foliar', 'Vegetação de cobertura')) NOT NULL,
+        gleba_id INTEGER NOT NULL,
+        produto_id INTEGER NOT NULL,
+        doencaPraga_id INTEGER,
+        ciclo_id INTEGER NOT NULL,
+        FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+        FOREIGN KEY (produto_id) REFERENCES Produto(id) ON DELETE CASCADE,
+        FOREIGN KEY (doencaPraga_id) REFERENCES DoencaPraga(id) ON DELETE SET NULL,
+        FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE
+      );
+    ''');
 
       await _insertInitialCultivars(db);
     } catch (e) {
@@ -146,7 +165,8 @@ class DBHelper {
       'Manejo',
       'EstagioFenologico',
       'RegistroManejo',
-      'RegistroEstagio'
+      'RegistroEstagio',
+      'Aplicacao'
     ];
     for (String table in tables) {
       final result = await db.rawQuery(
@@ -237,7 +257,8 @@ class DBHelper {
               FOREIGN KEY (manejo_id) REFERENCES Manejo(id) ON DELETE CASCADE
             );
             ''');
-          case 'RegistroManejo':
+            break;
+          case 'RegistroEstagio':
             await db.execute('''
                 CREATE TABLE RegistroEstagio (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -250,6 +271,26 @@ class DBHelper {
                 FOREIGN KEY (estagioFenologico_id) REFERENCES EstagioFenologico(id) ON DELETE CASCADE
               );
             ''');
+            break;
+          case 'Aplicacao':
+            await db.execute('''
+              CREATE TABLE Aplicacao (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              datetime TEXT NOT NULL,
+              volumeCalda REAL NOT NULL,
+              volumeProduto REAL NOT NULL,
+              motivo TEXT CHECK( motivo IN ('Doença (Prevenção)', 'Doença (Remediação)', 'Praga', 'Estímulo para brotação', 'Adubação Foliar', 'Vegetação de cobertura') ) NOT NULL,
+              gleba_id INTEGER NOT NULL,
+              produto_id INTEGER NOT NULL,
+              doencaPraga_id INTEGER,
+              ciclo_id INTEGER NOT NULL,
+              FOREIGN KEY (gleba_id) REFERENCES Gleba(id) ON DELETE CASCADE,
+              FOREIGN KEY (produto_id) REFERENCES Produto(id) ON DELETE CASCADE,
+              FOREIGN KEY (doencaPraga_id) REFERENCES DoencaPraga(id) ON DELETE CASCADE,
+              FOREIGN KEY (ciclo_id) REFERENCES Ciclo(id) ON DELETE CASCADE
+            );
+          ''');
+            break;
         }
       }
     }
@@ -408,7 +449,7 @@ class DBHelper {
     return await db.delete('DoencaPraga', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<Map<String, dynamic>?> getDoencaPragaById(int id) async {
+  Future<DoencaPraga?> getDoencaPragaById(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> result = await db.query(
       'DoencaPraga',
@@ -416,7 +457,7 @@ class DBHelper {
       whereArgs: [id],
     );
     if (result.isNotEmpty) {
-      return result.first;
+      return DoencaPraga.fromMap(result.first);
     }
     return null;
   }
@@ -538,36 +579,48 @@ class DBHelper {
 
   // ------------------ CRUD de Estágio Fenológico ------------------ //
 
+// Inserir um novo Estágio Fenológico
   Future<int> insertEstagioFenologico(
-      Map<String, dynamic> estagioFenologico) async {
+      EstagioFenologico estagioFenologico) async {
     try {
       final db = await database;
-      return await db.insert('EstagioFenologico', estagioFenologico);
+      return await db.insert('EstagioFenologico', estagioFenologico.toMap());
     } catch (e) {
       print("Erro ao inserir Estágio Fenológico: $e");
       return -1; // Retorna um código de erro personalizado
     }
   }
 
-  Future<List<Map<String, dynamic>>> getEstagiosFenologicos() async {
+// Buscar todos os Estágios Fenológicos
+  Future<List<EstagioFenologico>> getAllEstagiosFenologicos() async {
     try {
       final db = await database;
-      return await db.query('EstagioFenologico');
+      final List<Map<String, dynamic>> result =
+          await db.query('EstagioFenologico');
+
+      // Converte cada linha do resultado em um objeto EstagioFenologico
+      return result.map((row) {
+        return EstagioFenologico(
+          id: row['id'],
+          descricao: row['descricao'],
+        );
+      }).toList();
     } catch (e) {
       print("Erro ao buscar Estágios Fenológicos: $e");
       return []; // Retorna uma lista vazia em caso de erro
     }
   }
 
+// Atualizar um Estágio Fenológico existente
   Future<int> updateEstagioFenologico(
-      Map<String, dynamic> estagioFenologico) async {
+      EstagioFenologico estagioFenologico) async {
     try {
       final db = await database;
       return await db.update(
         'EstagioFenologico',
-        estagioFenologico,
+        estagioFenologico.toMap(),
         where: 'id = ?',
-        whereArgs: [estagioFenologico['id']],
+        whereArgs: [estagioFenologico.id],
       );
     } catch (e) {
       print("Erro ao atualizar Estágio Fenológico: $e");
@@ -575,6 +628,7 @@ class DBHelper {
     }
   }
 
+// Deletar um Estágio Fenológico pelo ID
   Future<int> deleteEstagioFenologico(int id) async {
     try {
       final db = await database;
@@ -588,6 +642,7 @@ class DBHelper {
       return -1; // Retorna um código de erro personalizado
     }
   }
+
   // ------------------ CRUD de Registro Manejo ------------------ //
 
   Future<int> insertRegistroManejo(Map<String, dynamic> registroManejo) async {
@@ -640,60 +695,117 @@ class DBHelper {
     }
   }
 
-// ------------------ CRUD de Registro Estagio Fenologico ------------------ //
+// ------------------ CRUD de Registro Estágio Fenológico ------------------ //
 
-// Método para inserir um novo Registro de Estágio Fenológico
+// Inserir um novo Registro de Estágio Fenológico
   Future<int> insertRegistroEstagioFenologico(
       RegistroEstagioFenologico registro) async {
-    final db = await database;
-    return await db.insert('RegistroEstagio', registro.toMap());
-  }
-
-// Método para obter todos os Registros de Estágio Fenológico
-  Future<List<RegistroEstagioFenologico>>
-      getRegistrosEstagioFenologico() async {
-    final db = await database;
-    final List<Map<String, dynamic>> result = await db.query('RegistroEstagio');
-    return result.map((map) => RegistroEstagioFenologico.fromMap(map)).toList();
-  }
-
-// Método para obter um Registro de Estágio Fenológico pelo ID
-  Future<RegistroEstagioFenologico?> getRegistroEstagioFenologicoById(
-      int id) async {
-    final db = await database;
-    final List<Map<String, dynamic>> result = await db.query(
-      'RegistroEstagio',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (result.isNotEmpty) {
-      return RegistroEstagioFenologico.fromMap(result.first);
-    } else {
-      return null; // Retorna null se não encontrar o registro
+    try {
+      final db = await database;
+      return await db.insert('RegistroEstagio', registro.toMap());
+    } catch (e) {
+      print("Erro ao inserir Registro de Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
     }
   }
 
-// Método para atualizar um Registro de Estágio Fenológico existente
+// Obter todos os Registros de Estágio Fenológico
+  Future<List<RegistroEstagioFenologico>>
+      getRegistrosEstagioFenologico() async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> result =
+          await db.query('RegistroEstagio');
+
+      // Converte cada linha do resultado em um objeto RegistroEstagioFenologico
+      return result
+          .map((map) => RegistroEstagioFenologico.fromMap(map))
+          .toList();
+    } catch (e) {
+      print("Erro ao buscar Registros de Estágio Fenológico: $e");
+      return []; // Retorna uma lista vazia em caso de erro
+    }
+  }
+
+// Obter um Registro de Estágio Fenológico pelo ID
+  Future<RegistroEstagioFenologico?> getRegistroEstagioFenologicoById(
+      int id) async {
+    try {
+      final db = await database;
+      final List<Map<String, dynamic>> result = await db.query(
+        'RegistroEstagio',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+
+      if (result.isNotEmpty) {
+        return RegistroEstagioFenologico.fromMap(result.first);
+      } else {
+        return null; // Retorna null se não encontrar o registro
+      }
+    } catch (e) {
+      print("Erro ao buscar Registro de Estágio Fenológico pelo ID: $e");
+      return null;
+    }
+  }
+
+// Atualizar um Registro de Estágio Fenológico existente
   Future<int> updateRegistroEstagioFenologico(
       RegistroEstagioFenologico registro) async {
+    try {
+      final db = await database;
+      return await db.update(
+        'RegistroEstagio',
+        registro.toMap(),
+        where: 'id = ?',
+        whereArgs: [registro.id],
+      );
+    } catch (e) {
+      print("Erro ao atualizar Registro de Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+
+// Deletar um Registro de Estágio Fenológico pelo ID
+  Future<int> deleteRegistroEstagioFenologico(int id) async {
+    try {
+      final db = await database;
+      return await db.delete(
+        'RegistroEstagio',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      print("Erro ao deletar Registro de Estágio Fenológico: $e");
+      return -1; // Retorna um código de erro personalizado
+    }
+  }
+// ------------------ CRUD de Aplicacoes ------------------ //
+
+  Future<int> insertAplicacao(Aplicacao aplicacao) async {
+    final db = await database;
+    return await db.insert('Aplicacao', aplicacao.toMap());
+  }
+
+  Future<List<Aplicacao>> getAplicacoes() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query('Aplicacao');
+    return result.map((map) => Aplicacao.fromMap(map)).toList();
+  }
+
+  Future<int> updateAplicacao(Aplicacao aplicacao) async {
     final db = await database;
     return await db.update(
-      'RegistroEstagio',
-      registro.toMap(),
+      'Aplicacao',
+      aplicacao.toMap(),
       where: 'id = ?',
-      whereArgs: [registro.id],
+      whereArgs: [aplicacao.id],
     );
   }
 
-// Método para deletar um Registro de Estágio Fenológico
-  Future<int> deleteRegistroEstagioFenologico(int id) async {
+  Future<int> deleteAplicacao(int id) async {
     final db = await database;
-    return await db.delete(
-      'RegistroEstagio',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('Aplicacao', where: 'id = ?', whereArgs: [id]);
   }
 
   // chave final

@@ -53,6 +53,7 @@ class MenuScreen extends StatelessWidget {
         label: 'Registrar Estágio Fenológico',
         route: '/registro_estagio_list',
         icon: Icons.add),
+    MenuItem(label: 'Aplicações', route: '/aplicacoes', icon: Icons.add),
     MenuItem(label: 'Backup', route: '/backup', icon: Icons.backup),
   ];
 

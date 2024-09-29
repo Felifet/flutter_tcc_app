@@ -1,10 +1,10 @@
 class DoencaPraga {
-  final int? id;
+  final int? id; // Pode ser nullable se for opcional
   final String descricaoCurta;
   final String? descricaoLonga;
 
   DoencaPraga({
-    this.id,
+    this.id, // Removido o required para permitir criação sem ID
     required this.descricaoCurta,
     this.descricaoLonga,
   });

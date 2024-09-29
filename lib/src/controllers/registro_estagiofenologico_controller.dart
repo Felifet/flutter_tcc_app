@@ -1,3 +1,5 @@
+import 'package:flutter_tcc_app/src/models/estagiofenologico_model.dart';
+
 import '../models/registro_estagiofenologico_model.dart';
 import '../services/registro_estagio_fenologico.dart';
 

@@ -19,6 +19,9 @@ import 'package:flutter_tcc_app/src/screens/registro_estagioFenologico/registro_
 import 'package:flutter_tcc_app/src/screens/registro_manejo/add_registro_manejo_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_manejo/registro_manejo_list_screen.dart';
+import 'src/screens/aplicacao/add_aplicacao_screen.dart';
+import 'src/screens/aplicacao/aplicacao_edit_screen.dart';
+import 'src/screens/aplicacao/aplicacao_list_screen.dart';
 import 'src/screens/menu_screen.dart';
 import 'src/screens/product/product_list_screen.dart';
 import 'src/screens/product/add_product_screen.dart';
@@ -83,6 +86,8 @@ class MyApp extends StatelessWidget {
                   as RegistroEstagioFenologico;
           return EditRegistroEstagioScreen(registroEstagio: registroEstagio);
         },
+        '/aplicacoes': (context) => const AplicacaoListScreen(),
+        '/add_aplicacao': (context) => AddAplicacaoScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/registro_manejo_edit') {

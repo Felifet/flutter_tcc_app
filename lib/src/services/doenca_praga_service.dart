@@ -11,6 +11,7 @@ class DoencaPragaService {
       final doencaPraga = DoencaPraga(
         descricaoCurta: descricaoCurta,
         descricaoLonga: descricaoLonga,
+        id: null,
       );
       await _controller.addDoencaPraga(doencaPraga);
     } catch (e) {
