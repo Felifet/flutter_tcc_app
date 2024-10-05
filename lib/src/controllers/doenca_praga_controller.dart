@@ -34,17 +34,16 @@ class DoencaPragaController {
     }
   }
 
-  // Retorna todas as DoencaPraga
+// Retorna todas as DoencaPraga
   Future<List<DoencaPraga>> getDoencasPragas() async {
     try {
-      final List<Map<String, dynamic>> maps =
-          (await _dbHelper.getDoencasPragas()).cast<Map<String, dynamic>>();
-      return List.generate(maps.length, (i) {
-        return DoencaPraga.fromMap(maps[i]);
-      });
+      // Aqui você está recebendo uma lista de objetos DoencaPraga diretamente
+      final List<DoencaPraga> doencasPragas =
+          await _dbHelper.getDoencasPragas();
+      return doencasPragas;
     } catch (e) {
       print('Erro ao buscar Doença/Praga no serviço: $e');
-      throw Exception('Erro ao buscar Doença/Praga: $e');
+      throw Exception('Erro ao buscar Doença/Praga');
     }
   }
 

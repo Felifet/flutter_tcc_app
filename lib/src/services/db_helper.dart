@@ -431,6 +431,7 @@ class DBHelper {
   Future<List<DoencaPraga>> getDoencasPragas() async {
     final db = await database;
     final List<Map<String, dynamic>> result = await db.query('DoencaPraga');
+    // Aqui fazemos a conversão de cada mapa para DoencaPraga
     return result.map((map) => DoencaPraga.fromMap(map)).toList();
   }
 
