@@ -12,6 +12,9 @@ class DoencaPragaListScreen extends StatefulWidget {
 
 class _DoencaPragaListScreenState extends State<DoencaPragaListScreen> {
   List<DoencaPraga> _doencasPragas = [];
+  List<DoencaPraga> _filteredDoencasPragas = [];
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -23,6 +26,27 @@ class _DoencaPragaListScreenState extends State<DoencaPragaListScreen> {
     final doencasPragas = await DBHelper().getDoencasPragas();
     setState(() {
       _doencasPragas = doencasPragas;
+      _filteredDoencasPragas = doencasPragas;
+    });
+  }
+
+  void _filterDoencasPragas(String query) {
+    final filtered = _doencasPragas
+        .where((doencaPraga) => doencaPraga.descricaoCurta
+            .toLowerCase()
+            .contains(query.toLowerCase()))
+        .toList();
+
+    setState(() {
+      _filteredDoencasPragas = filtered;
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      _searchController.clear();
+      _filteredDoencasPragas = _doencasPragas;
     });
   }
 
@@ -30,15 +54,31 @@ class _DoencaPragaListScreenState extends State<DoencaPragaListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Doenças/Pragas'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Pesquisar...',
+                  border: InputBorder.none,
+                ),
+                style: const TextStyle(color: Colors.white),
+                onChanged: _filterDoencasPragas,
+              )
+            : const Text('Doenças/Pragas'),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: _toggleSearch,
+          ),
+        ],
       ),
-      body: _doencasPragas.isEmpty
+      body: _filteredDoencasPragas.isEmpty
           ? const Center(child: Text('Nenhuma Doença/Praga encontrada.'))
           : ListView.separated(
-              itemCount: _doencasPragas.length,
+              itemCount: _filteredDoencasPragas.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final doencaPraga = _doencasPragas[index];
+                final doencaPraga = _filteredDoencasPragas[index];
                 return ListTile(
                   contentPadding: const EdgeInsets.all(16.0),
                   title: Text(

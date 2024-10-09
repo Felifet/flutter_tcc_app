@@ -14,6 +14,9 @@ class CicloListScreen extends StatefulWidget {
 class _CicloListScreenState extends State<CicloListScreen> {
   late Future<List<Ciclo>> _cicloList;
   final CicloService _cicloService = CicloService();
+  List<Ciclo> _filteredCicloList = [];
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -25,13 +28,62 @@ class _CicloListScreenState extends State<CicloListScreen> {
     setState(() {
       _cicloList = _cicloService.getCiclos();
     });
+    _cicloList.then((ciclos) {
+      setState(() {
+        _filteredCicloList = ciclos;
+      });
+    });
+  }
+
+  void _filterCiclos(String query) {
+    final filtered = _filteredCicloList
+        .where((ciclo) =>
+            ciclo.descricao.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      _filteredCicloList = filtered;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _refreshCicloList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Ciclos'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Pesquisar ciclo...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  ),
+                ),
+                onChanged: _filterCiclos,
+              )
+            : const Text('Cadastro de Ciclos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _clearSearch();
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Ciclo>>(
         future: _cicloList,
@@ -41,19 +93,18 @@ class _CicloListScreenState extends State<CicloListScreen> {
           } else if (snapshot.hasError) {
             return const Center(
                 child: Text('Erro ao carregar o cadastro de Ciclos.'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData || _filteredCicloList.isEmpty) {
             return const Center(child: Text('Nenhum ciclo encontrado.'));
           } else {
             return ListView.separated(
-              itemCount: snapshot.data!.length,
+              itemCount: _filteredCicloList.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final ciclo = snapshot.data![index];
+                final ciclo = _filteredCicloList[index];
                 return ListTile(
                   title: Text(
                     ciclo.descricao,
-                    style:
-                        TextStyle(fontSize: 18.0), // Aumenta o tamanho da fonte
+                    style: const TextStyle(fontSize: 18.0),
                   ),
                   onTap: () {
                     Navigator.push(

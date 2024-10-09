@@ -13,6 +13,9 @@ class AplicacaoListScreen extends StatefulWidget {
 
 class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
   late Future<List<Aplicacao>> _aplicacoes;
+  List<Aplicacao> _filteredAplicacoes = [];
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -23,6 +26,29 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
   void _loadAplicacoes() {
     setState(() {
       _aplicacoes = AplicacaoService().getAplicacoes();
+    });
+    _aplicacoes.then((aplicacoes) {
+      setState(() {
+        _filteredAplicacoes = aplicacoes;
+      });
+    });
+  }
+
+  void _filterAplicacoes(String query) {
+    final filtered = _filteredAplicacoes
+        .where((aplicacao) =>
+            aplicacao.motivo.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      _filteredAplicacoes = filtered;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _loadAplicacoes();
     });
   }
 
@@ -49,7 +75,33 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lista de Aplicações'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Pesquisar aplicação...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  ),
+                ),
+                onChanged: _filterAplicacoes,
+              )
+            : const Text('Lista de Aplicações'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _clearSearch();
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Aplicacao>>(
         future: _aplicacoes,
@@ -58,11 +110,11 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text('Erro ao carregar as aplicações.'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData || _filteredAplicacoes.isEmpty) {
             return const Center(child: Text('Nenhuma aplicação encontrada.'));
           }
 
-          final aplicacoes = snapshot.data!;
+          final aplicacoes = _filteredAplicacoes;
 
           return ListView.builder(
             itemCount: aplicacoes.length,
@@ -74,7 +126,8 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
                   title: Text('Aplicação em ${aplicacao.datetime}'),
                   subtitle: Text('Motivo: ${aplicacao.motivo}'),
                   trailing: const Icon(Icons.edit),
-                  onTap: () => _navigateToEditAplicacao(aplicacao),
+                  onTap: () => _navigateToEditAplicacao(
+                      aplicacao), // A navegação para edição
                 ),
               );
             },

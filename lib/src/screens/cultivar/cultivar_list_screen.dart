@@ -11,6 +11,8 @@ class CultivarListScreen extends StatefulWidget {
 class _CultivarListScreenState extends State<CultivarListScreen> {
   final CultivarController _cultivarController = CultivarController();
   List<Cultivar> _cultivares = [];
+  List<Cultivar> _filteredCultivares = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -22,6 +24,7 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
     final cultivares = await _cultivarController.getCultivares();
     setState(() {
       _cultivares = cultivares;
+      _filteredCultivares = cultivares;
     });
   }
 
@@ -30,20 +33,57 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
     _loadCultivares(); // Recarrega a lista após exclusão
   }
 
+  void _filterCultivares(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredCultivares = _cultivares;
+      } else {
+        _filteredCultivares = _cultivares
+            .where((cultivar) =>
+                cultivar.nome.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cultivares')),
-      body: _cultivares.isEmpty
-          ? Center(child: Text('Nenhuma cultivar cadastrada.'))
+      appBar: AppBar(
+        title: _isSearching
+            ? TextField(
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Pesquisar...',
+                  border: InputBorder.none,
+                ),
+                onChanged: _filterCultivares,
+              )
+            : const Text('Cultivares'),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _filteredCultivares = _cultivares;
+                }
+              });
+            },
+          ),
+        ],
+      ),
+      body: _filteredCultivares.isEmpty
+          ? const Center(child: Text('Nenhuma cultivar cadastrada.'))
           : ListView.builder(
-              itemCount: _cultivares.length,
+              itemCount: _filteredCultivares.length,
               itemBuilder: (context, index) {
-                final cultivar = _cultivares[index];
+                final cultivar = _filteredCultivares[index];
                 return ListTile(
                   title: Text(cultivar.nome),
                   trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () =>
                         _showDeleteConfirmationDialog(cultivar.id!),
                   ),
@@ -53,8 +93,7 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
                       builder: (context) =>
                           CultivarEditScreen(cultivar: cultivar),
                     ),
-                  ).then((_) =>
-                      _loadCultivares()), // Recarrega a lista após edição
+                  ).then((_) => _loadCultivares()),
                 );
               },
             ),
@@ -62,9 +101,8 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CultivarEditScreen()),
-        ).then(
-            (_) => _loadCultivares()), // Recarrega a lista após nova inserção
-        child: Icon(Icons.add),
+        ).then((_) => _loadCultivares()),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -74,19 +112,20 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Excluir Cultivar'),
-          content: Text('Tem certeza de que deseja excluir esta cultivar?'),
+          title: const Text('Excluir Cultivar'),
+          content:
+              const Text('Tem certeza de que deseja excluir esta cultivar?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
                 _deleteCultivar(id);
                 Navigator.pop(context);
               },
-              child: Text('Excluir'),
+              child: const Text('Excluir'),
             ),
           ],
         );

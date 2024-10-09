@@ -14,16 +14,42 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   late Future<List<Product>> _productList;
   final ProductController _controller = ProductController();
+  List<Product> _filteredProductList = [];
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _productList = _controller.getAllProducts();
+    _refreshProductList();
   }
 
-  Future<void> _reloadProducts() async {
+  void _refreshProductList() {
     setState(() {
       _productList = _controller.getAllProducts();
+    });
+    _productList.then((products) {
+      setState(() {
+        _filteredProductList = products;
+      });
+    });
+  }
+
+  void _filterProducts(String query) {
+    final filtered = _filteredProductList
+        .where((product) =>
+            product.nomeComercial.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      _filteredProductList = filtered;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _refreshProductList();
     });
   }
 
@@ -31,7 +57,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Consulta de Produtos'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Pesquisar produto...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  ),
+                ),
+                onChanged: _filterProducts,
+              )
+            : const Text('Consulta de Produtos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _clearSearch();
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<Product>>(
         future: _productList,
@@ -40,17 +92,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return const Center(child: Text('Erro ao carregar os produtos.'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData || _filteredProductList.isEmpty) {
             return const Center(child: Text('Nenhum produto encontrado!'));
           } else {
             return ListView.separated(
-              itemCount: snapshot.data!.length,
+              itemCount: _filteredProductList.length,
               separatorBuilder: (context, index) => const Divider(
                 height: 1.0,
                 color: Colors.grey,
               ),
               itemBuilder: (context, index) {
-                final product = snapshot.data![index];
+                final product = _filteredProductList[index];
 
                 return ListTile(
                   title: Text(
@@ -68,8 +120,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         builder: (context) =>
                             ProductEditScreen(product: product),
                       ),
-                    ).then((_) =>
-                        _reloadProducts()); // Atualiza a lista após voltar
+                    ).then((_) => _refreshProductList());
                   },
                 );
               },
@@ -84,8 +135,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             MaterialPageRoute(
               builder: (context) => const AddProductScreen(),
             ),
-          ).then((_) =>
-              _reloadProducts()); // Atualiza a lista após adicionar um novo produto
+          ).then((_) => _refreshProductList());
         },
         child: const Icon(Icons.add),
       ),

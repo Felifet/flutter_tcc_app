@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Para formatar a data
 import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/services/gleba_service.dart';
 import 'package:flutter_tcc_app/src/services/doenca_praga_service.dart';
 import 'package:flutter_tcc_app/src/services/ciclo_service.dart';
-
 import 'package:flutter_tcc_app/src/models/product_model.dart';
 import 'package:flutter_tcc_app/src/services/product_service.dart';
 
@@ -37,6 +37,36 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
   void initState() {
     super.initState();
     _loadDropdownData();
+    _datetimeController.text = DateFormat('yyyy-MM-dd HH:mm')
+        .format(DateTime.now()); // Define a data atual no campo
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      final TimeOfDay? time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+      if (time != null) {
+        final DateTime combined = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          time.hour,
+          time.minute,
+        );
+        setState(() {
+          _datetimeController.text =
+              DateFormat('yyyy-MM-dd HH:mm').format(combined);
+        });
+      }
+    }
   }
 
   void _loadDropdownData() async {
@@ -76,26 +106,36 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
         title: const Text('Adicionar Aplicação'),
       ),
       body: SingleChildScrollView(
-        // Adicionado para tornar a tela rolável
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
               TextField(
                 controller: _datetimeController,
-                decoration: const InputDecoration(labelText: 'Data e Hora'),
+                decoration: InputDecoration(
+                  labelText: 'Data e Hora',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.calendar_today),
+                    onPressed: () => _selectDate(context),
+                  ),
+                ),
+                readOnly:
+                    true, // Impede que o usuário edite o campo manualmente
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _volumeCaldaController,
                 decoration: const InputDecoration(labelText: 'Volume da Calda'),
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _volumeProdutoController,
                 decoration:
                     const InputDecoration(labelText: 'Volume do Produto'),
                 keyboardType: TextInputType.number,
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Motivo'),
                 value: _selectedMotivo,
@@ -118,6 +158,7 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<Gleba>(
                 decoration: const InputDecoration(labelText: 'Gleba'),
                 value: _selectedGleba,
@@ -133,6 +174,7 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<Product>(
                 decoration: const InputDecoration(labelText: 'Produto'),
                 value: _selectedProduto,
@@ -148,6 +190,7 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<DoencaPraga>(
                 decoration: const InputDecoration(labelText: 'Doença/Praga'),
                 value: _selectedDoencaPraga,
@@ -163,6 +206,7 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<Ciclo>(
                 decoration: const InputDecoration(labelText: 'Ciclo'),
                 value: _selectedCiclo,
@@ -178,9 +222,12 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveAplicacao,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // Cor azul do botão
+                ),
                 child: const Text('Salvar Aplicação'),
               ),
             ],

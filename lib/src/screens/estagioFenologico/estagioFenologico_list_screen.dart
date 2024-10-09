@@ -17,6 +17,9 @@ class _EstagioFenologicoListScreenState
   late Future<List<EstagioFenologico>> _estagioFenologicoList;
   final EstagioFenologicoService _estagioFenologicoService =
       EstagioFenologicoService();
+  List<EstagioFenologico> _filteredEstagioList = [];
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -29,13 +32,62 @@ class _EstagioFenologicoListScreenState
       _estagioFenologicoList =
           _estagioFenologicoService.getAllEstagiosFenologicos();
     });
+    _estagioFenologicoList.then((estagios) {
+      setState(() {
+        _filteredEstagioList = estagios;
+      });
+    });
+  }
+
+  void _filterEstagios(String query) {
+    final filtered = _filteredEstagioList
+        .where((estagio) =>
+            estagio.descricao.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      _filteredEstagioList = filtered;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _refreshEstagioFenologicoList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Estágios Fenológicos'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Pesquisar estágio fenológico...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  ),
+                ),
+                onChanged: _filterEstagios,
+              )
+            : const Text('Estágios Fenológicos'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _clearSearch();
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<List<EstagioFenologico>>(
         future: _estagioFenologicoList,
@@ -45,15 +97,15 @@ class _EstagioFenologicoListScreenState
           } else if (snapshot.hasError) {
             return const Center(
                 child: Text('Erro ao carregar os estágios fenológicos.'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData || _filteredEstagioList.isEmpty) {
             return const Center(
                 child: Text('Nenhum estágio fenológico encontrado.'));
           } else {
             return ListView.separated(
-              itemCount: snapshot.data!.length,
+              itemCount: _filteredEstagioList.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final estagio = snapshot.data![index];
+                final estagio = _filteredEstagioList[index];
                 return ListTile(
                   title: Text(
                     estagio.descricao,
@@ -63,9 +115,8 @@ class _EstagioFenologicoListScreenState
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EstagioFenologicoEditScreen(
-                          estagioId: estagio.id!,
-                        ),
+                        builder: (context) =>
+                            EstagioFenologicoEditScreen(estagioId: estagio.id!),
                       ),
                     ).then((_) {
                       _refreshEstagioFenologicoList();

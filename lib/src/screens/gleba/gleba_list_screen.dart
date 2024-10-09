@@ -12,6 +12,9 @@ class GlebaListScreen extends StatefulWidget {
 
 class _GlebaListScreenState extends State<GlebaListScreen> {
   List<Gleba> _glebas = [];
+  List<Gleba> _filteredGlebas = [];
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -23,6 +26,25 @@ class _GlebaListScreenState extends State<GlebaListScreen> {
     final glebas = await DBHelper().getGlebas();
     setState(() {
       _glebas = glebas;
+      _filteredGlebas = glebas;
+    });
+  }
+
+  void _filterGlebas(String query) {
+    final filtered = _glebas
+        .where((gleba) =>
+            gleba.nomeIdentificador.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    setState(() {
+      _filteredGlebas = filtered;
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    setState(() {
+      _isSearching = false;
+      _filteredGlebas = _glebas;
     });
   }
 
@@ -30,15 +52,41 @@ class _GlebaListScreenState extends State<GlebaListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Glebas'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Pesquisar gleba...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: _clearSearch,
+                  ),
+                ),
+                onChanged: _filterGlebas,
+              )
+            : const Text('Glebas'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _clearSearch();
+                }
+              });
+            },
+          ),
+        ],
       ),
-      body: _glebas.isEmpty
+      body: _filteredGlebas.isEmpty
           ? const Center(child: Text('Nenhuma Gleba encontrada.'))
           : ListView.separated(
-              itemCount: _glebas.length,
+              itemCount: _filteredGlebas.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final gleba = _glebas[index];
+                final gleba = _filteredGlebas[index];
                 return ListTile(
                   title: Text(
                     gleba.nomeIdentificador,
