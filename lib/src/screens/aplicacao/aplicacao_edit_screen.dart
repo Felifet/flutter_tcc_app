@@ -13,7 +13,8 @@ import 'package:flutter_tcc_app/src/services/product_service.dart';
 class EditAplicacaoScreen extends StatefulWidget {
   final Aplicacao aplicacao;
 
-  const EditAplicacaoScreen({super.key, required this.aplicacao});
+  const EditAplicacaoScreen({Key? key, required this.aplicacao})
+      : super(key: key);
 
   @override
   _EditAplicacaoScreenState createState() => _EditAplicacaoScreenState();
@@ -48,7 +49,7 @@ class _EditAplicacaoScreenState extends State<EditAplicacaoScreen> {
     _produtos = await ProductService().getProducts();
     _doencasPragas = await DoencaPragaService().getDoencasPragas();
     _ciclos = await CicloService().getCiclos();
-    setState(() {});
+    setState(() {}); // Atualiza o estado após carregar os dados
   }
 
   void _initializeFields() {
@@ -56,14 +57,19 @@ class _EditAplicacaoScreenState extends State<EditAplicacaoScreen> {
     _volumeCaldaController.text = widget.aplicacao.volumeCalda.toString();
     _volumeProdutoController.text = widget.aplicacao.volumeProduto.toString();
     _selectedMotivo = widget.aplicacao.motivo;
+
+    // Usando orElse para evitar exceções se o elemento não for encontrado
     _selectedGleba =
         _glebas.firstWhere((gleba) => gleba.id == widget.aplicacao.glebaId);
+
     _selectedProduto = _produtos
         .firstWhere((produto) => produto.id == widget.aplicacao.produtoId);
+
     _selectedDoencaPraga = widget.aplicacao.doencaPragaId != null
         ? _doencasPragas
             .firstWhere((doenca) => doenca.id == widget.aplicacao.doencaPragaId)
         : null;
+
     _selectedCiclo =
         _ciclos.firstWhere((ciclo) => ciclo.id == widget.aplicacao.cicloId);
   }
@@ -87,6 +93,11 @@ class _EditAplicacaoScreenState extends State<EditAplicacaoScreen> {
 
       await AplicacaoService().updateAplicacao(aplicacao);
       Navigator.pop(context);
+    } else {
+      // Opcional: Adicione um aviso para o usuário
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Preencha todos os campos obrigatórios.')),
+      );
     }
   }
 

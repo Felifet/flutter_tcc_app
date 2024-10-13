@@ -298,6 +298,29 @@ class DBHelper {
 
   // ------------------ CRUD de Produtos ------------------ //
 
+  Future<int> insert(String table, Map<String, dynamic> data) async {
+    final db = await database;
+    return await db.insert(table, data);
+  }
+
+  Future<List<Map<String, dynamic>>> getAll(String table) async {
+    final db = await database;
+    return await db.query(table);
+  }
+
+  Future<int> update(String table, Map<String, dynamic> data, String where,
+      List<dynamic> whereArgs) async {
+    final db = await database;
+    return await db.update(table, data, where: where, whereArgs: whereArgs);
+  }
+
+  Future<int> delete(
+      String table, String where, List<dynamic> whereArgs) async {
+    final db = await database;
+    return await db.delete(table, where: where, whereArgs: whereArgs);
+  }
+//antigos, acima, de antes da importacao
+
   Future<int> insertProduct(Map<String, dynamic> product) async {
     try {
       final db = await database;

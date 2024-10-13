@@ -39,7 +39,7 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
     _dosagemComercialController = TextEditingController(
         text: widget.product?.dosagemComercial?.toString() ?? '');
     _intervaloDeSegurancaController = TextEditingController(
-        text: widget.product?.intervaloDeSeguranca?.toString() ?? '');
+        text: widget.product?.intervaloDeSeguranca.toString() ?? '');
     _vigenciaController =
         TextEditingController(text: widget.product?.vigencia?.toString() ?? '');
   }
@@ -205,9 +205,9 @@ class _ProductEditScreenState extends State<ProductEditScreen> {
                         height: 50,
                         child: ElevatedButton(
                           onPressed: _saveProduct,
-                          child: const Text('Salvar'),
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue),
+                          child: const Text('Salvar'),
                         ),
                       ),
                     ),
