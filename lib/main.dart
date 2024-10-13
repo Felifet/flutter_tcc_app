@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
