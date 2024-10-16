@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
+import 'package:flutter_tcc_app/src/screens/backup/backup_screen.dart';
 import 'package:flutter_tcc_app/src/screens/cultivar/cultivar_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/add_doenca_praga_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/doenca_praga_edit_screen.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_tcc_app/src/screens/doencaPraga/doenca_praga_list_screen
 import 'package:flutter_tcc_app/src/screens/estagioFenologico/add_estagioFenologico_screen.dart';
 import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/estagioFenologico/estagioFenologico_list_screen.dart';
+import 'package:flutter_tcc_app/src/screens/graficos/graficos_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_list_screen.dart';
@@ -89,6 +91,8 @@ class MyApp extends StatelessWidget {
         '/aplicacoes': (context) => const AplicacaoListScreen(),
         '/add_aplicacao': (context) => AddAplicacaoScreen(),
         '/importacao_produtos': (context) => ImportacaoProdutosScreen(),
+        '/backup': (context) => BackupScreen(),
+        '/graficos': (context) => GraficosScreen(),
         /*
         '/edit_aplicacao': (context) {
           final Aplicacao aplicacao =

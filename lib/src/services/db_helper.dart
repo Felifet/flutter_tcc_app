@@ -5,6 +5,7 @@ import 'package:flutter_tcc_app/src/models/estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/models/doenca_praga_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/models/product_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -36,6 +37,23 @@ class DBHelper {
       print("Erro ao inicializar o banco de dados: $e");
       throw Exception("Erro ao inicializar o banco de dados");
     }
+  }
+
+  Future<List<Map<String, dynamic>>> query(
+    String tableName, {
+    String? where,
+    List<dynamic>? whereArgs,
+    List<String>? columns,
+    String? orderBy,
+  }) async {
+    final db = await database;
+    return await db.query(
+      tableName,
+      where: where,
+      whereArgs: whereArgs,
+      columns: columns,
+      orderBy: orderBy,
+    );
   }
 
   Future _onCreate(Database db, int version) async {
@@ -364,6 +382,25 @@ class DBHelper {
       print("Erro ao deletar produto: $e");
       return -1;
     }
+  }
+
+  // Recupera os tipos distintos de produtos cadastrados
+  Future<List<String>> getDistinctProductTypes() async {
+    final db = await database;
+    final List<Map<String, dynamic>> result =
+        await db.rawQuery('SELECT DISTINCT tipo FROM products');
+    return result.map((map) => map['tipo'] as String).toList();
+  }
+
+// Recupera os produtos filtrados por tipo
+  Future<List<Product>> getProductsByType(String tipo) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'products',
+      where: 'tipo = ?',
+      whereArgs: [tipo],
+    );
+    return result.map((map) => Product.fromMap(map)).toList();
   }
 
   // ------------------ CRUD de Glebas ------------------ //

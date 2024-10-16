@@ -24,11 +24,13 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
 
   String? _selectedMotivo;
   Gleba? _selectedGleba;
+  String? _selectedTipoProduto;
   Product? _selectedProduto;
   DoencaPraga? _selectedDoencaPraga;
   Ciclo? _selectedCiclo;
 
   List<Gleba> _glebas = [];
+  List<String> _tiposProdutos = [];
   List<Product> _produtos = [];
   List<DoencaPraga> _doencasPragas = [];
   List<Ciclo> _ciclos = [];
@@ -37,8 +39,21 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
   void initState() {
     super.initState();
     _loadDropdownData();
-    _datetimeController.text = DateFormat('yyyy-MM-dd HH:mm')
-        .format(DateTime.now()); // Define a data atual no campo
+    _datetimeController.text =
+        DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+  }
+
+  Future<void> _loadDropdownData() async {
+    _glebas = await GlebaService().getGlebas();
+    _tiposProdutos = await ProductService().getDistinctProductTypes();
+    _doencasPragas = await DoencaPragaService().getDoencasPragas();
+    _ciclos = await CicloService().getCiclos();
+    setState(() {});
+  }
+
+  Future<void> _loadProdutosPorTipo(String tipo) async {
+    _produtos = await ProductService().getProductsByType(tipo);
+    setState(() {});
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -69,15 +84,6 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
     }
   }
 
-  void _loadDropdownData() async {
-    // Carregar os dados para os comboboxes
-    _glebas = await GlebaService().getGlebas();
-    _produtos = await ProductService().getProducts();
-    _doencasPragas = await DoencaPragaService().getDoencasPragas();
-    _ciclos = await CicloService().getCiclos();
-    setState(() {}); // Atualizar o estado para carregar os dados nos comboboxes
-  }
-
   void _saveAplicacao() async {
     if (_selectedMotivo != null &&
         _selectedGleba != null &&
@@ -90,7 +96,7 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
         motivo: _selectedMotivo!,
         glebaId: _selectedGleba!.id!,
         produtoId: _selectedProduto!.id!,
-        doencaPragaId: _selectedDoencaPraga?.id, // Opcional
+        doencaPragaId: _selectedDoencaPraga?.id,
         cicloId: _selectedCiclo!.id!,
       );
 
@@ -119,21 +125,41 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                     onPressed: () => _selectDate(context),
                   ),
                 ),
-                readOnly:
-                    true, // Impede que o usuário edite o campo manualmente
+                readOnly: true,
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _volumeCaldaController,
-                decoration: const InputDecoration(labelText: 'Volume da Calda'),
-                keyboardType: TextInputType.number,
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Tipo de Produto'),
+                value: _selectedTipoProduto,
+                items: _tiposProdutos.map((tipo) {
+                  return DropdownMenuItem(
+                    value: tipo,
+                    child: Text(tipo),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedTipoProduto = value;
+                    _loadProdutosPorTipo(
+                        value!); // Carrega os produtos do tipo selecionado
+                  });
+                },
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _volumeProdutoController,
-                decoration:
-                    const InputDecoration(labelText: 'Volume do Produto'),
-                keyboardType: TextInputType.number,
+              DropdownButtonFormField<Product>(
+                decoration: const InputDecoration(labelText: 'Produto'),
+                value: _selectedProduto,
+                items: _produtos.map((produto) {
+                  return DropdownMenuItem(
+                    value: produto,
+                    child: Text(produto.nomeComercial),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedProduto = value;
+                  });
+                },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(

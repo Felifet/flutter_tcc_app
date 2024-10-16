@@ -1,6 +1,6 @@
 name: flutter_tcc_app
 description: "Projeto do TCC. Desenvolvido em Flutter."
-publish_to: 'none' # Remove this line if você quiser publicar no pub.dev
+publish_to: 'none' # Remova esta linha se você quiser publicar no pub.dev
 
 version: 1.0.0+1
 
@@ -14,15 +14,22 @@ dependencies:
   cupertino_icons: ^1.0.8
   path: ^1.9.0
   path_provider: ^2.0.15
-  sqflite: ^2.3.3+1
-  intl: ^0.19.0
-  excel: ^2.0.7
-  file_picker: ^5.2.0
+  sqflite: ^2.4.0      # Atualizado para a versão mais recente
+  intl: ^0.17.0
+  excel: ^4.0.6       # Atualizado para a versão mais recente
+  file_picker: ^8.1.2 # Atualizado para a versão mais recente
+  googleapis: ^10.0.0
+  googleapis_auth: ^1.4.1
+  http: ^0.13.6       # Mantido, pois é a versão mais recente
+  url_launcher: ^6.1.5 
+  fl_chart: ^0.69.0
+  charts_common: ^0.12.0 
 
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0 # Atualizado para a versão mais recente
 
 flutter:
   uses-material-design: true

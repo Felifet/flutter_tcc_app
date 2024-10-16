@@ -59,6 +59,7 @@ class MenuScreen extends StatelessWidget {
         label: 'Importação de Produtos',
         route: '/importacao_produtos',
         icon: Icons.install_desktop),
+    MenuItem(label: 'Gráficos', route: '/graficos', icon: Icons.chat_rounded),
   ];
 
   // Método para construir os botões do menu
