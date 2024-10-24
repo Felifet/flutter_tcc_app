@@ -16,7 +16,7 @@ class Gleba {
       'id': id,
       'nomeIdentificador': nomeIdentificador,
       'area': area,
-      'cultivar_id': cultivarId,
+      'cultivar_id': cultivarId, // Apenas cultivar_id é necessário
     };
   }
 

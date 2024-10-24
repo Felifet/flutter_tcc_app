@@ -11,8 +11,8 @@ class GlebaListScreen extends StatefulWidget {
 }
 
 class _GlebaListScreenState extends State<GlebaListScreen> {
-  List<Gleba> _glebas = [];
-  List<Gleba> _filteredGlebas = [];
+  List<Map<String, dynamic>> _glebas = [];
+  List<Map<String, dynamic>> _filteredGlebas = [];
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
@@ -23,18 +23,21 @@ class _GlebaListScreenState extends State<GlebaListScreen> {
   }
 
   Future<void> _loadGlebas() async {
-    final glebas = await DBHelper().getGlebas();
+    final glebasData =
+        await DBHelper().getGlebasWithCultivar(); // Método que realiza o JOIN
     setState(() {
-      _glebas = glebas;
-      _filteredGlebas = glebas;
+      _glebas = glebasData; // Recebe os dados com o cultivar
+      _filteredGlebas = _glebas;
     });
   }
 
   void _filterGlebas(String query) {
-    final filtered = _glebas
-        .where((gleba) =>
-            gleba.nomeIdentificador.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    final filtered = _glebas.where((gleba) {
+      final nomeIdentificador =
+          gleba['nomeIdentificador'].toString().toLowerCase();
+      return nomeIdentificador.contains(query.toLowerCase());
+    }).toList();
+
     setState(() {
       _filteredGlebas = filtered;
     });
@@ -89,18 +92,21 @@ class _GlebaListScreenState extends State<GlebaListScreen> {
                 final gleba = _filteredGlebas[index];
                 return ListTile(
                   title: Text(
-                    gleba.nomeIdentificador,
+                    gleba['nomeIdentificador'], // Nome da gleba
                     style: const TextStyle(fontSize: 20),
                   ),
                   subtitle: Text(
-                    'Área: ${gleba.area} ha',
+                    'Área: ${gleba['area']} ha\nCultivar: ${gleba['cultivarNome'] ?? 'N/A'}', // Exibe o nome do cultivar
                     style: const TextStyle(fontSize: 18),
                   ),
                   onTap: () {
+                    final glebaModel =
+                        Gleba.fromMap(gleba); // Converte o mapa para o modelo
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => GlebaEditScreen(gleba: gleba),
+                        builder: (context) =>
+                            GlebaEditScreen(gleba: glebaModel),
                       ),
                     ).then((_) => _loadGlebas());
                   },

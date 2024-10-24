@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tcc_app/src/models/gleba_model.dart';
+import '../../models/gleba_model.dart';
 import '../../services/db_helper.dart';
 
 class AddGlebaScreen extends StatefulWidget {
@@ -13,20 +13,37 @@ class _AddGlebaScreenState extends State<AddGlebaScreen> {
   final TextEditingController _nomeIdentificadorController =
       TextEditingController();
   final TextEditingController _areaController = TextEditingController();
-  final TextEditingController _cultivarIdController = TextEditingController();
+  int? _selectedCultivarId;
+
+  List<Map<String, dynamic>> _cultivares = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCultivares();
+  }
+
+  Future<void> _loadCultivares() async {
+    final db = await DBHelper().database;
+    final result = await db.query('Cultivar');
+    setState(() {
+      _cultivares = result;
+    });
+  }
 
   void _saveGleba() async {
     final String nomeIdentificador = _nomeIdentificadorController.text;
     final double? area = double.tryParse(_areaController.text);
-    final int? cultivarId = int.tryParse(_cultivarIdController.text);
 
-    if (nomeIdentificador.isNotEmpty && area != null) {
-      final gleba = {
-        'nomeIdentificador': nomeIdentificador,
-        'area': area,
-        'cultivar_id': cultivarId
-      };
-      await DBHelper().insertGleba(gleba as Gleba);
+    if (nomeIdentificador.isNotEmpty &&
+        area != null &&
+        _selectedCultivarId != null) {
+      final gleba = Gleba(
+        nomeIdentificador: nomeIdentificador,
+        area: area,
+        cultivarId: _selectedCultivarId,
+      );
+      await DBHelper().insertGleba(gleba);
       Navigator.pop(context); // Volta para a lista de glebas
     }
   }
@@ -34,7 +51,7 @@ class _AddGlebaScreenState extends State<AddGlebaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Gleba')),
+      appBar: AppBar(title: const Text('Adicionar Gleba')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
@@ -49,10 +66,21 @@ class _AddGlebaScreenState extends State<AddGlebaScreen> {
               decoration: const InputDecoration(labelText: 'Área (ha)'),
               keyboardType: TextInputType.number,
             ),
-            TextField(
-              controller: _cultivarIdController,
-              decoration: const InputDecoration(labelText: 'Cultivar ID'),
-              keyboardType: TextInputType.number,
+            const SizedBox(height: 20),
+            DropdownButtonFormField<int>(
+              value: _selectedCultivarId,
+              items: _cultivares.map((cultivar) {
+                return DropdownMenuItem<int>(
+                  value: cultivar['id'],
+                  child: Text(cultivar['nome']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCultivarId = value;
+                });
+              },
+              decoration: const InputDecoration(labelText: 'Cultivar'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(

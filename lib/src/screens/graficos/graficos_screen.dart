@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
+import 'package:flutter_tcc_app/src/models/gleba_model.dart';
+import 'package:flutter_tcc_app/src/models/product_model.dart';
+import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
+import 'package:flutter_tcc_app/src/services/gleba_service.dart';
+import 'package:flutter_tcc_app/src/services/product_service.dart';
 
 class GraficosScreen extends StatefulWidget {
   @override
@@ -7,87 +13,135 @@ class GraficosScreen extends StatefulWidget {
 }
 
 class _GraficosScreenState extends State<GraficosScreen> {
-  // Simular dados para o gráfico de aplicações de herbicida em diferentes datas
-  final Map<String, int> herbicideApplications = {
-    '01/10/2024': 3,
-    '02/10/2024': 5,
-    '03/10/2024': 2,
-    '04/10/2024': 4,
-    '05/10/2024': 6,
-  };
+  Gleba? _selectedGleba;
+  List<Gleba> _glebas = [];
+  List<Aplicacao> _aplicacoesFiltradas = [];
+  Map<String, int> tipoProdutoCount = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGlebas();
+  }
+
+  Future<void> _loadGlebas() async {
+    _glebas = await GlebaService().getGlebas();
+    setState(() {});
+  }
+
+  Future<void> _filterAplicacoes() async {
+    if (_selectedGleba != null) {
+      _aplicacoesFiltradas =
+          await AplicacaoService().getAplicacoesByGlebaId(_selectedGleba!.id!);
+      await _countTiposDeProduto();
+      setState(() {});
+    }
+  }
+
+  Future<void> _countTiposDeProduto() async {
+    tipoProdutoCount.clear();
+    for (var aplicacao in _aplicacoesFiltradas) {
+      Product? produto =
+          await ProductService().getProductById(aplicacao.produtoId);
+      if (produto != null) {
+        String tipoProduto = produto.tipo;
+
+        if (tipoProdutoCount.containsKey(tipoProduto)) {
+          tipoProdutoCount[tipoProduto] = tipoProdutoCount[tipoProduto]! + 1;
+        } else {
+          tipoProdutoCount[tipoProduto] = 1;
+        }
+      }
+    }
+  }
+
+  List<BarChartGroupData> _buildBarChartData() {
+    int index = 0;
+    return tipoProdutoCount.entries.map((entry) {
+      return BarChartGroupData(
+        x: index++,
+        barRods: [
+          BarChartRodData(
+            toY: entry.value.toDouble(),
+            color: Colors.blue,
+            width: 20,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ],
+        showingTooltipIndicators: [0],
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gráficos de Aplicações de Herbicida'),
-        centerTitle: true,
+        title: const Text('Gráficos de Aplicações'),
       ),
-      body: SingleChildScrollView(
-        // Permite rolagem
-        scrollDirection: Axis.horizontal, // Rolagem horizontal
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Container(
-            // Adiciona um Container com largura fixa
-            width: 800, // Defina um valor que caiba no seu layout
-            child: BarChart(
-              BarChartData(
-                barGroups: _createBarGroups(),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        // Mapear o número de aplicações para o eixo y
-                        return Text(
-                          value.toInt().toString(),
-                          style: TextStyle(fontSize: 12),
-                        );
-                      },
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            DropdownButtonFormField<Gleba>(
+              decoration: const InputDecoration(labelText: 'Selecione a Gleba'),
+              value: _selectedGleba,
+              items: _glebas.map((gleba) {
+                return DropdownMenuItem(
+                  value: gleba,
+                  child: Text(gleba.nomeIdentificador),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedGleba = value;
+                });
+                _filterAplicacoes();
+              },
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: BarChart(
+                BarChartData(
+                  barGroups: _buildBarChartData(),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: 1,
+                        reservedSize: 28,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(fontSize: 12),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) {
-                        // Mapear as datas para o eixo x
-                        return Text(
-                          herbicideApplications.keys.elementAt(value.toInt()),
-                          style: TextStyle(fontSize: 12),
-                        );
-                      },
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          if (value.toInt() < tipoProdutoCount.length) {
+                            String tipoProduto =
+                                tipoProdutoCount.keys.elementAt(value.toInt());
+                            return Text(
+                              tipoProduto,
+                              style: const TextStyle(fontSize: 10),
+                            );
+                          }
+                          return const Text('');
+                        },
+                      ),
                     ),
                   ),
                 ),
-                borderData: FlBorderData(show: true),
-                gridData: FlGridData(show: true),
-                barTouchData:
-                    BarTouchData(enabled: false), // Desativar interações
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
-  }
-
-  List<BarChartGroupData> _createBarGroups() {
-    // Criar grupos de barras a partir dos dados simulados
-    return herbicideApplications.entries.map((entry) {
-      final index = herbicideApplications.keys.toList().indexOf(entry.key);
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: entry.value.toDouble(),
-            color: Colors.blue,
-            width: 30,
-          ),
-        ],
-      );
-    }).toList();
   }
 }

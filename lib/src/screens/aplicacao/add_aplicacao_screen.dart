@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Para formatar a data
+import 'package:intl/intl.dart';
 import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
@@ -23,17 +23,18 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
       TextEditingController();
 
   String? _selectedMotivo;
-  Gleba? _selectedGleba;
   String? _selectedTipoProduto;
+  Gleba? _selectedGleba;
   Product? _selectedProduto;
   DoencaPraga? _selectedDoencaPraga;
   Ciclo? _selectedCiclo;
 
+  double? _concentracao;
   List<Gleba> _glebas = [];
-  List<String> _tiposProdutos = [];
   List<Product> _produtos = [];
   List<DoencaPraga> _doencasPragas = [];
   List<Ciclo> _ciclos = [];
+  List<String> _tiposProdutos = [];
 
   @override
   void initState() {
@@ -41,19 +42,6 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
     _loadDropdownData();
     _datetimeController.text =
         DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
-  }
-
-  Future<void> _loadDropdownData() async {
-    _glebas = await GlebaService().getGlebas();
-    _tiposProdutos = await ProductService().getDistinctProductTypes();
-    _doencasPragas = await DoencaPragaService().getDoencasPragas();
-    _ciclos = await CicloService().getCiclos();
-    setState(() {});
-  }
-
-  Future<void> _loadProdutosPorTipo(String tipo) async {
-    _produtos = await ProductService().getProductsByType(tipo);
-    setState(() {});
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -81,6 +69,26 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
               DateFormat('yyyy-MM-dd HH:mm').format(combined);
         });
       }
+    }
+  }
+
+  void _loadDropdownData() async {
+    _glebas = await GlebaService().getGlebas();
+    _produtos = await ProductService().getProducts();
+    _doencasPragas = await DoencaPragaService().getDoencasPragas();
+    _ciclos = await CicloService().getCiclos();
+    _tiposProdutos = await ProductService().getDistinctProductTypes();
+    setState(() {});
+  }
+
+  void _updateConcentration() {
+    if (_volumeProdutoController.text.isNotEmpty &&
+        _volumeCaldaController.text.isNotEmpty) {
+      final double volumeProduto = double.parse(_volumeProdutoController.text);
+      final double volumeCalda = double.parse(_volumeCaldaController.text);
+      setState(() {
+        _concentracao = volumeProduto / volumeCalda;
+      });
     }
   }
 
@@ -128,36 +136,41 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                 readOnly: true,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Tipo de Produto'),
-                value: _selectedTipoProduto,
-                items: _tiposProdutos.map((tipo) {
-                  return DropdownMenuItem(
-                    value: tipo,
-                    child: Text(tipo),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedTipoProduto = value;
-                    _loadProdutosPorTipo(
-                        value!); // Carrega os produtos do tipo selecionado
-                  });
-                },
+              TextField(
+                controller: _volumeCaldaController,
+                decoration:
+                    const InputDecoration(labelText: 'Volume da Calda (L)'),
+                keyboardType: TextInputType.number,
+                onChanged: (_) => _updateConcentration(),
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<Product>(
-                decoration: const InputDecoration(labelText: 'Produto'),
-                value: _selectedProduto,
-                items: _produtos.map((produto) {
+              TextField(
+                controller: _volumeProdutoController,
+                decoration:
+                    const InputDecoration(labelText: 'Volume do Produto (ml)'),
+                keyboardType: TextInputType.number,
+                onChanged: (_) => _updateConcentration(),
+              ),
+              const SizedBox(height: 16),
+              if (_concentracao != null)
+                Text(
+                  'Concentração: ${_concentracao!.toStringAsFixed(2)} ml/L',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<Gleba>(
+                decoration: const InputDecoration(labelText: 'Gleba'),
+                value: _selectedGleba,
+                items: _glebas.map((gleba) {
                   return DropdownMenuItem(
-                    value: produto,
-                    child: Text(produto.nomeComercial),
+                    value: gleba,
+                    child: Text(gleba.nomeIdentificador),
                   );
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedProduto = value;
+                    _selectedGleba = value;
                   });
                 },
               ),
@@ -185,19 +198,38 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<Gleba>(
-                decoration: const InputDecoration(labelText: 'Gleba'),
-                value: _selectedGleba,
-                items: _glebas.map((gleba) {
+              DropdownButtonFormField<Ciclo>(
+                decoration: const InputDecoration(labelText: 'Ciclo'),
+                value: _selectedCiclo,
+                items: _ciclos.map((ciclo) {
                   return DropdownMenuItem(
-                    value: gleba,
-                    child: Text(gleba.nomeIdentificador),
+                    value: ciclo,
+                    child: Text(ciclo.descricao),
                   );
                 }).toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedGleba = value;
+                    _selectedCiclo = value;
                   });
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Tipo de Produto'),
+                value: _selectedTipoProduto,
+                items: _tiposProdutos.map((tipo) {
+                  return DropdownMenuItem(
+                    value: tipo,
+                    child: Text(tipo),
+                  );
+                }).toList(),
+                onChanged: (value) async {
+                  setState(() {
+                    _selectedTipoProduto = value;
+                    _selectedProduto = null;
+                  });
+                  _produtos = await ProductService().getProductsByType(value!);
+                  setState(() {});
                 },
               ),
               const SizedBox(height: 16),
@@ -216,43 +248,11 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
                   });
                 },
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<DoencaPraga>(
-                decoration: const InputDecoration(labelText: 'Doença/Praga'),
-                value: _selectedDoencaPraga,
-                items: _doencasPragas.map((doencaPraga) {
-                  return DropdownMenuItem(
-                    value: doencaPraga,
-                    child: Text(doencaPraga.descricaoCurta),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedDoencaPraga = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<Ciclo>(
-                decoration: const InputDecoration(labelText: 'Ciclo'),
-                value: _selectedCiclo,
-                items: _ciclos.map((ciclo) {
-                  return DropdownMenuItem(
-                    value: ciclo,
-                    child: Text(ciclo.descricao),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCiclo = value;
-                  });
-                },
-              ),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _saveAplicacao,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Cor azul do botão
+                  backgroundColor: Colors.blue,
                 ),
                 child: const Text('Salvar Aplicação'),
               ),

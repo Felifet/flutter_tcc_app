@@ -48,4 +48,19 @@ class ProductService {
   Future<void> deleteProduct(int id) async {
     await _dbHelper.deleteProduct(id);
   }
+
+  Future<Product?> getProductById(int id) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'products',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (result.isNotEmpty) {
+      return Product.fromMap(result.first);
+    } else {
+      return null;
+    }
+  }
 }

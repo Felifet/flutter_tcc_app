@@ -406,13 +406,12 @@ class DBHelper {
   // ------------------ CRUD de Glebas ------------------ //
 
   Future<int> insertGleba(Gleba gleba) async {
-    try {
-      final db = await database;
-      return await db.insert('Gleba', gleba.toMap());
-    } catch (e) {
-      print("Erro ao inserir Gleba: $e");
-      return -1;
-    }
+    final db = await database;
+    return await db.insert(
+      'Gleba',
+      gleba.toMap(), // Chama o método toMap corrigido
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<Gleba>> getGlebas() async {
@@ -428,19 +427,33 @@ class DBHelper {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getGlebasWithCultivar() async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT Gleba.id, Gleba.nomeIdentificador, Gleba.area, Cultivar.nome AS cultivarNome
+      FROM Gleba
+      LEFT JOIN Cultivar ON Gleba.cultivar_id = Cultivar.id
+    ''');
+    return result;
+  }
+
+  Future<List<Gleba>> getAllGlebas() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('Gleba');
+
+    return List.generate(maps.length, (i) {
+      return Gleba.fromMap(maps[i]);
+    });
+  }
+
   Future<int> updateGleba(Gleba gleba) async {
-    try {
-      final db = await database;
-      return await db.update(
-        'Gleba',
-        gleba.toMap(),
-        where: 'id = ?',
-        whereArgs: [gleba.id],
-      );
-    } catch (e) {
-      print("Erro ao atualizar Gleba: $e");
-      return -1;
-    }
+    final db = await database;
+    return await db.update(
+      'Gleba',
+      gleba.toMap(),
+      where: 'id = ?',
+      whereArgs: [gleba.id],
+    );
   }
 
   Future<void> deleteGleba(int id) async {

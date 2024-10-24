@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/gleba_model.dart';
+import '../../models/cultivar_model.dart';
+import '../../services/db_helper.dart';
 import '../../services/gleba_service.dart';
 
 class GlebaEditScreen extends StatefulWidget {
@@ -15,6 +17,8 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nomeController;
   late TextEditingController _areaController;
+  Cultivar? _selectedCultivar;
+  List<Cultivar> _cultivares = [];
 
   final GlebaService _glebaService = GlebaService();
 
@@ -25,6 +29,22 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
         TextEditingController(text: widget.gleba?.nomeIdentificador ?? '');
     _areaController =
         TextEditingController(text: widget.gleba?.area.toString() ?? '');
+    _loadCultivares();
+  }
+
+  Future<void> _loadCultivares() async {
+    final cultivares = await DBHelper().getCultivares();
+    setState(() {
+      _cultivares = cultivares;
+      if (cultivares.isNotEmpty) {
+        _selectedCultivar = cultivares.firstWhere(
+          (cultivar) => cultivar.id == widget.gleba?.cultivarId,
+          orElse: () => cultivares.first, // Aqui corrigimos o erro.
+        );
+      } else {
+        _selectedCultivar = null; // Defina como null se a lista estiver vazia.
+      }
+    });
   }
 
   @override
@@ -40,6 +60,7 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
         id: widget.gleba?.id,
         nomeIdentificador: _nomeController.text,
         area: double.tryParse(_areaController.text) ?? 0,
+        cultivarId: _selectedCultivar?.id,
       );
 
       if (widget.gleba == null) {
@@ -115,6 +136,22 @@ class _GlebaEditScreenState extends State<GlebaEditScreen> {
                   return null;
                 },
                 style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<Cultivar>(
+                value: _selectedCultivar,
+                items: _cultivares.map((Cultivar cultivar) {
+                  return DropdownMenuItem<Cultivar>(
+                    value: cultivar,
+                    child: Text(cultivar.nome),
+                  );
+                }).toList(),
+                onChanged: (Cultivar? newValue) {
+                  setState(() {
+                    _selectedCultivar = newValue;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'Cultivar'),
               ),
               const SizedBox(height: 20),
               Row(
