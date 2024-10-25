@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
-import 'package:flutter_tcc_app/src/models/product_model.dart';
 import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
 import 'package:flutter_tcc_app/src/services/gleba_service.dart';
-import 'package:flutter_tcc_app/src/services/product_service.dart';
 
 class GraficosScreen extends StatefulWidget {
   @override
@@ -15,8 +12,7 @@ class GraficosScreen extends StatefulWidget {
 class _GraficosScreenState extends State<GraficosScreen> {
   Gleba? _selectedGleba;
   List<Gleba> _glebas = [];
-  List<Aplicacao> _aplicacoesFiltradas = [];
-  Map<String, int> tipoProdutoCount = {};
+  List<Map<String, dynamic>> _dadosAgrupados = [];
 
   @override
   void initState() {
@@ -31,40 +27,39 @@ class _GraficosScreenState extends State<GraficosScreen> {
 
   Future<void> _filterAplicacoes() async {
     if (_selectedGleba != null) {
-      _aplicacoesFiltradas =
-          await AplicacaoService().getAplicacoesByGlebaId(_selectedGleba!.id!);
-      await _countTiposDeProduto();
+      print("Selecionou a Gleba ID: ${_selectedGleba!.id}");
+
+      // Chamando o serviço para buscar as aplicações por Gleba
+      _dadosAgrupados = await AplicacaoService()
+          .getAplicacoesAgrupadasPorTipo(_selectedGleba!.id!);
+
+      print("Aplicações filtradas: $_dadosAgrupados");
+
       setState(() {});
-    }
-  }
-
-  Future<void> _countTiposDeProduto() async {
-    tipoProdutoCount.clear();
-    for (var aplicacao in _aplicacoesFiltradas) {
-      Product? produto =
-          await ProductService().getProductById(aplicacao.produtoId);
-      if (produto != null) {
-        String tipoProduto = produto.tipo;
-
-        if (tipoProdutoCount.containsKey(tipoProduto)) {
-          tipoProdutoCount[tipoProduto] = tipoProdutoCount[tipoProduto]! + 1;
-        } else {
-          tipoProdutoCount[tipoProduto] = 1;
-        }
-      }
+    } else {
+      print("Nenhuma gleba selecionada.");
     }
   }
 
   List<BarChartGroupData> _buildBarChartData() {
     int index = 0;
-    return tipoProdutoCount.entries.map((entry) {
+    return _dadosAgrupados.map((entry) {
+      double vigencia = entry['totalVigencia'].toDouble();
+      double carencia = entry['totalCarencia'].toDouble();
+
       return BarChartGroupData(
         x: index++,
         barRods: [
           BarChartRodData(
-            toY: entry.value.toDouble(),
+            toY: vigencia,
             color: Colors.blue,
-            width: 20,
+            width: 12,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          BarChartRodData(
+            toY: carencia,
+            color: Colors.green,
+            width: 12,
             borderRadius: BorderRadius.circular(4),
           ),
         ],
@@ -101,43 +96,67 @@ class _GraficosScreenState extends State<GraficosScreen> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: BarChart(
-                BarChartData(
-                  barGroups: _buildBarChartData(),
-                  borderData: FlBorderData(show: false),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 1,
-                        reservedSize: 28,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(fontSize: 12),
-                          );
-                        },
+              child: _dadosAgrupados.isNotEmpty
+                  ? BarChart(
+                      BarChartData(
+                        barGroups: _buildBarChartData(),
+                        borderData: FlBorderData(show: false),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              interval: 10,
+                              reservedSize: 28,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 12),
+                                );
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                if (value.toInt() < _dadosAgrupados.length) {
+                                  String tipoProduto =
+                                      _dadosAgrupados[value.toInt()]
+                                          ['tipoProduto'];
+                                  return Text(
+                                    tipoProduto,
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                }
+                                return const Text('');
+                              },
+                            ),
+                          ),
+                        ),
+                        barTouchData: BarTouchData(
+                          touchTooltipData: BarTouchTooltipData(
+                            tooltipPadding: const EdgeInsets.all(8),
+                            tooltipMargin: 5,
+                            tooltipRoundedRadius: 10,
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              String tipoProduto =
+                                  _dadosAgrupados[group.x.toInt()]
+                                      ['tipoProduto'];
+                              String rodName =
+                                  rodIndex == 0 ? 'Vigência' : 'Carência';
+                              return BarTooltipItem(
+                                '$tipoProduto\n$rodName: ${rod.toY.toStringAsFixed(2)}',
+                                const TextStyle(color: Colors.white),
+                              );
+                            },
+                          ),
+                        ),
                       ),
+                    )
+                  : const Center(
+                      child: Text(
+                          'Nenhuma aplicação encontrada para a Gleba selecionada.'),
                     ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() < tipoProdutoCount.length) {
-                            String tipoProduto =
-                                tipoProdutoCount.keys.elementAt(value.toInt());
-                            return Text(
-                              tipoProduto,
-                              style: const TextStyle(fontSize: 10),
-                            );
-                          }
-                          return const Text('');
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ),
           ],
         ),

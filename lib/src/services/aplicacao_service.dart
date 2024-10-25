@@ -9,13 +9,14 @@ class AplicacaoService {
 
   // Método para buscar aplicações por ID da Gleba e incluir o tipo do produto
   Future<List<Map<String, dynamic>>> getAplicacoesWithProdutoTipoByGlebaId(
-      int glebaId) async {
+      int gleba_id) async {
     final db = await _dbHelper.database;
-    // Consulta as aplicações com base no glebaId
+
+    // Consulta as aplicações com base no gleba_id
     final List<Map<String, dynamic>> result = await db.query(
       'Aplicacao',
-      where: 'glebaId = ?',
-      whereArgs: [glebaId],
+      where: 'gleba_id = ?', // Corrigido para gleba_id
+      whereArgs: [gleba_id],
     );
 
     // Itera sobre as aplicações e carrega o tipo do produto para cada uma
@@ -31,15 +32,59 @@ class AplicacaoService {
       // Adiciona o tipo do produto ao map
       aplicacoesComTipos.add({
         'aplicacao': aplicacao,
-        'tipoProduto': produto?.tipo ??
-            'Desconhecido', // Adiciona o tipo ou 'Desconhecido' se não encontrado
+        'tipoProduto': produto?.tipo ?? 'Desconhecido',
+        'vigencia': produto?.vigencia ?? 0, // Vigência do produto
+        'carencia': produto?.intervaloDeSeguranca ??
+            0 // Carência (intervalo de segurança)
       });
     }
 
     return aplicacoesComTipos;
   }
 
-  // Inserir uma nova aplicação
+  // Novo método para agrupar aplicações por tipo de produto
+  Future<List<Map<String, dynamic>>> getAplicacoesAgrupadasPorTipo(
+      int gleba_id) async {
+    List<Map<String, dynamic>> aplicacoesComTipos =
+        await getAplicacoesWithProdutoTipoByGlebaId(gleba_id);
+
+    // Mapa para agrupar os dados
+    Map<String, List<Map<String, dynamic>>> agrupadoPorTipo = {};
+
+    // Agrupar por tipo de produto
+    for (var aplicacaoComTipo in aplicacoesComTipos) {
+      String tipoProduto = aplicacaoComTipo['tipoProduto'];
+
+      if (!agrupadoPorTipo.containsKey(tipoProduto)) {
+        agrupadoPorTipo[tipoProduto] = [];
+      }
+
+      agrupadoPorTipo[tipoProduto]!.add(aplicacaoComTipo);
+    }
+
+    // Converter o agrupamento para uma lista
+    List<Map<String, dynamic>> agrupadoFinal =
+        agrupadoPorTipo.entries.map((entry) {
+      String tipo = entry.key;
+      List<Map<String, dynamic>> aplicacoes = entry.value;
+
+      // Somar os valores de vigência e carência
+      double totalVigencia =
+          aplicacoes.fold(0, (prev, curr) => prev + (curr['vigencia'] ?? 0));
+      double totalCarencia =
+          aplicacoes.fold(0, (prev, curr) => prev + (curr['carencia'] ?? 0));
+
+      return {
+        'tipoProduto': tipo,
+        'totalVigencia': totalVigencia,
+        'totalCarencia': totalCarencia,
+      };
+    }).toList();
+
+    return agrupadoFinal;
+  }
+
+  // Método para inserir uma nova aplicação
   Future<int> insertAplicacao(Aplicacao aplicacao) async {
     final db = await _dbHelper.database;
     return await db.insert('Aplicacao', aplicacao.toMap());
@@ -60,7 +105,7 @@ class AplicacaoService {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       'Aplicacao',
-      where: 'glebaId = ?',
+      where: 'gleba_id = ?', // Corrigido para gleba_id
       whereArgs: [glebaId],
     );
     return result.map((map) => Aplicacao.fromMap(map)).toList();

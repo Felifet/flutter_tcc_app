@@ -61,7 +61,6 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
     });
   }
 
-  /*
   void _navigateToEditAplicacao(Aplicacao id) {
     Navigator.push(
       context,
@@ -71,7 +70,7 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
       _loadAplicacoes();
     });
   }
-*/
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -127,7 +126,8 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
                   title: Text('Aplicação em ${aplicacao.datetime}'),
                   subtitle: Text('Motivo: ${aplicacao.motivo}'),
                   trailing: const Icon(Icons.edit),
-                  //onTap: () => _navigateToEditAplicacao( aplicacao),
+                  onTap: () =>
+                      _navigateToEditAplicacao(aplicacao.id as Aplicacao),
                 ),
               );
             },

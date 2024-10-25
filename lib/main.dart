@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
@@ -93,13 +94,11 @@ class MyApp extends StatelessWidget {
         '/importacao_produtos': (context) => ImportacaoProdutosScreen(),
         '/backup': (context) => BackupScreen(),
         '/graficos': (context) => GraficosScreen(),
-        /*
         '/edit_aplicacao': (context) {
           final Aplicacao aplicacao =
               ModalRoute.of(context)?.settings.arguments as Aplicacao;
           return EditAplicacaoScreen(aplicacao: aplicacao);
         },
-        */
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/registro_manejo_edit') {
