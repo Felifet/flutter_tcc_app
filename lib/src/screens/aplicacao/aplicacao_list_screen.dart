@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/screens/aplicacao/add_aplicacao_screen.dart';
 import 'package:flutter_tcc_app/src/screens/aplicacao/aplicacao_edit_screen.dart';
@@ -27,9 +28,24 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
     setState(() {
       _aplicacoes = AplicacaoService().getAplicacoes();
     });
-    _aplicacoes.then((aplicacoes) {
+
+    _aplicacoes.then((aplicacoes) async {
+      List<Aplicacao> aplicacoesComProdutoNome = [];
+
+      for (var aplicacao in aplicacoes) {
+        // Buscar o nome comercial do produto associado
+        String nomeProduto = await AplicacaoService()
+            .getProdutoNomeComercial(aplicacao.produtoId);
+
+        // Atribuir o nome comercial ao campo 'produtoNomeComercial' da aplicação
+        aplicacao.produtoNomeComercial = nomeProduto;
+
+        // Adicionar a aplicação à lista temporária
+        aplicacoesComProdutoNome.add(aplicacao);
+      }
+
       setState(() {
-        _filteredAplicacoes = aplicacoes;
+        _filteredAplicacoes = aplicacoesComProdutoNome;
       });
     });
   }
@@ -61,11 +77,11 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
     });
   }
 
-  void _navigateToEditAplicacao(Aplicacao id) {
+  void _navigateToEditAplicacao(Aplicacao aplicacao) {
     Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => EditAplicacaoScreen(aplicacao: id)),
+          builder: (context) => EditAplicacaoScreen(aplicacao: aplicacao)),
     ).then((_) {
       _loadAplicacoes();
     });
@@ -120,14 +136,21 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
             itemCount: aplicacoes.length,
             itemBuilder: (context, index) {
               final aplicacao = aplicacoes[index];
+              String formattedDate =
+                  DateFormat('dd/MM/yyyy').format(aplicacao.datetime);
+
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text('Aplicação em ${aplicacao.datetime}'),
-                  subtitle: Text('Motivo: ${aplicacao.motivo}'),
-                  trailing: const Icon(Icons.edit),
-                  onTap: () =>
-                      _navigateToEditAplicacao(aplicacao.id as Aplicacao),
+                  title: Text('Aplicação feita na data: $formattedDate'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Produto: ${aplicacao.produtoNomeComercial}'),
+                      Text('Motivo: ${aplicacao.motivo}'),
+                    ],
+                  ),
+                  onTap: () => _navigateToEditAplicacao(aplicacao),
                 ),
               );
             },

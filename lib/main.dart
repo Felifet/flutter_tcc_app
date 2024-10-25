@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+
+// Modelos
 import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
+
+// Telas
 import 'package:flutter_tcc_app/src/screens/backup/backup_screen.dart';
 import 'package:flutter_tcc_app/src/screens/cultivar/cultivar_list_screen.dart';
 import 'package:flutter_tcc_app/src/screens/doencaPraga/add_doenca_praga_screen.dart';
@@ -48,71 +52,71 @@ class MyApp extends StatelessWidget {
       title: 'TCC App',
       theme: ThemeData.dark(),
       initialRoute: '/',
-      routes: {
-        '/': (context) => MenuScreen(),
-        '/products': (context) => const ProductListScreen(),
-        '/add_product': (context) => const AddProductScreen(),
-        '/edit_product': (context) => const ProductEditScreen(),
-        '/glebas': (context) => const GlebaListScreen(),
-        '/add_gleba': (context) => const GlebaEditScreen(),
-        '/edit_gleba': (context) => const GlebaEditScreen(),
-        '/ciclos': (context) => const CicloListScreen(),
-        '/add_ciclo': (context) => const AddCicloScreen(),
-        '/edit_ciclo': (context) => const CicloEditScreen(),
-        '/doencas_pragas': (context) => const DoencaPragaListScreen(),
-        '/add_doenca_praga': (context) => const AddDoencaPragaScreen(),
-        '/edit_doenca_praga': (context) => const DoencaPragaEditScreen(),
-        '/cultivares': (context) => CultivarListScreen(),
-        '/estagios_fenologicos': (context) =>
-            const EstagioFenologicoListScreen(),
-        '/add_estagio_fenologico': (context) =>
-            const AddEstagioFenologicoScreen(),
-        '/edit_estagio_fenologico': (context) {
-          final estagioId = ModalRoute.of(context)?.settings.arguments as int?;
-          return EstagioFenologicoEditScreen(estagioId: estagioId ?? 0);
-        },
-        '/manejos': (context) => const ManejoListScreen(),
-        '/add_manejo': (context) => const AddManejoScreen(),
-        '/edit_manejo': (context) {
-          final manejo = ModalRoute.of(context)?.settings.arguments as Manejo?;
-          return EditManejoScreen(
-              manejo: manejo ?? Manejo(id: 0, nome: '', descricao: ''));
-        },
-        '/add_registro_manejo': (context) => const AddRegistroManejoScreen(),
-        '/registro_manejo_list': (context) => const RegistroManejoListScreen(),
-        '/add_registro_estagio': (context) => const AddRegistroEstagioScreen(),
-        '/registro_estagio_list': (context) =>
-            const RegistroEstagioListScreen(),
-        '/edit_registro_estagio': (context) {
-          final RegistroEstagioFenologico registroEstagio =
-              ModalRoute.of(context)?.settings.arguments
-                  as RegistroEstagioFenologico;
-          return EditRegistroEstagioScreen(registroEstagio: registroEstagio);
-        },
-        '/aplicacoes': (context) => const AplicacaoListScreen(),
-        '/add_aplicacao': (context) => AddAplicacaoScreen(),
-        '/importacao_produtos': (context) => ImportacaoProdutosScreen(),
-        '/backup': (context) => BackupScreen(),
-        '/graficos': (context) => GraficosScreen(),
-        '/edit_aplicacao': (context) {
-          final Aplicacao aplicacao =
-              ModalRoute.of(context)?.settings.arguments as Aplicacao;
-          return EditAplicacaoScreen(aplicacao: aplicacao);
-        },
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/registro_manejo_edit') {
-          final RegistroManejo registroManejo =
-              settings.arguments as RegistroManejo;
-
-          return MaterialPageRoute(
-            builder: (context) {
-              return RegistroManejoEditScreen(registroManejo: registroManejo);
-            },
-          );
-        }
-        return null;
-      },
+      routes: _buildRoutes(),
+      onGenerateRoute: _onGenerateRoute,
     );
+  }
+
+  Map<String, WidgetBuilder> _buildRoutes() {
+    return {
+      '/': (context) => MenuScreen(),
+      '/products': (context) => const ProductListScreen(),
+      '/add_product': (context) => const AddProductScreen(),
+      '/edit_product': (context) => const ProductEditScreen(),
+      '/glebas': (context) => const GlebaListScreen(),
+      '/add_gleba': (context) => const GlebaEditScreen(),
+      '/edit_gleba': (context) => const GlebaEditScreen(),
+      '/ciclos': (context) => const CicloListScreen(),
+      '/add_ciclo': (context) => const AddCicloScreen(),
+      '/edit_ciclo': (context) => const CicloEditScreen(),
+      '/doencas_pragas': (context) => const DoencaPragaListScreen(),
+      '/add_doenca_praga': (context) => const AddDoencaPragaScreen(),
+      '/edit_doenca_praga': (context) => const DoencaPragaEditScreen(),
+      '/cultivares': (context) => CultivarListScreen(),
+      '/estagios_fenologicos': (context) => const EstagioFenologicoListScreen(),
+      '/add_estagio_fenologico': (context) =>
+          const AddEstagioFenologicoScreen(),
+      '/edit_estagio_fenologico': (context) {
+        final estagioId = ModalRoute.of(context)?.settings.arguments as int?;
+        return EstagioFenologicoEditScreen(estagioId: estagioId ?? 0);
+      },
+      '/manejos': (context) => const ManejoListScreen(),
+      '/add_manejo': (context) => const AddManejoScreen(),
+      '/edit_manejo': (context) {
+        final manejo = ModalRoute.of(context)?.settings.arguments as Manejo?;
+        return EditManejoScreen(
+            manejo: manejo ?? Manejo(id: 0, nome: '', descricao: ''));
+      },
+      '/add_registro_manejo': (context) => const AddRegistroManejoScreen(),
+      '/registro_manejo_list': (context) => const RegistroManejoListScreen(),
+      '/add_registro_estagio': (context) => const AddRegistroEstagioScreen(),
+      '/registro_estagio_list': (context) => const RegistroEstagioListScreen(),
+      '/edit_registro_estagio': (context) {
+        final registroEstagio = ModalRoute.of(context)?.settings.arguments
+            as RegistroEstagioFenologico;
+        return EditRegistroEstagioScreen(registroEstagio: registroEstagio);
+      },
+      '/aplicacoes': (context) => const AplicacaoListScreen(),
+      '/add_aplicacao': (context) => AddAplicacaoScreen(),
+      '/importacao_produtos': (context) => const ImportacaoProdutosScreen(),
+      '/backup': (context) => const BackupScreen(),
+      '/graficos': (context) => GraficosScreen(),
+      '/edit_aplicacao': (context) {
+        final aplicacao =
+            ModalRoute.of(context)?.settings.arguments as Aplicacao;
+        return EditAplicacaoScreen(aplicacao: aplicacao);
+      },
+    };
+  }
+
+  Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+    if (settings.name == '/registro_manejo_edit') {
+      final registroManejo = settings.arguments as RegistroManejo;
+      return MaterialPageRoute(
+        builder: (context) =>
+            RegistroManejoEditScreen(registroManejo: registroManejo),
+      );
+    }
+    return null; // Retorna null se a rota não for reconhecida
   }
 }

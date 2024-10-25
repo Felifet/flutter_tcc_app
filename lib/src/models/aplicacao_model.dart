@@ -8,6 +8,8 @@ class Aplicacao {
   int produtoId;
   int? doencaPragaId;
   int cicloId;
+  // Adicionando o campo para armazenar o nome do produto
+  String? produtoNomeComercial;
 
   Aplicacao({
     this.id,

@@ -9,66 +9,62 @@ class AplicacaoService {
 
   // Método para buscar aplicações por ID da Gleba e incluir o tipo do produto
   Future<List<Map<String, dynamic>>> getAplicacoesWithProdutoTipoByGlebaId(
-      int gleba_id) async {
-    final db = await _dbHelper.database;
+      int glebaId) async {
+    try {
+      final db = await _dbHelper.database;
 
-    // Consulta as aplicações com base no gleba_id
-    final List<Map<String, dynamic>> result = await db.query(
-      'Aplicacao',
-      where: 'gleba_id = ?', // Corrigido para gleba_id
-      whereArgs: [gleba_id],
-    );
+      // Consulta as aplicações com base no glebaId
+      final List<Map<String, dynamic>> result = await db.query(
+        'Aplicacao',
+        where: 'gleba_id = ?',
+        whereArgs: [glebaId],
+      );
 
-    // Itera sobre as aplicações e carrega o tipo do produto para cada uma
-    List<Map<String, dynamic>> aplicacoesComTipos = [];
-    for (var aplicacaoMap in result) {
-      // Converte o map em um objeto Aplicacao
-      Aplicacao aplicacao = Aplicacao.fromMap(aplicacaoMap);
+      // Itera sobre as aplicações e carrega o tipo do produto para cada uma
+      List<Map<String, dynamic>> aplicacoesComTipos = [];
+      for (var aplicacaoMap in result) {
+        Aplicacao aplicacao = Aplicacao.fromMap(aplicacaoMap);
+        Product? produto =
+            await _productService.getProductById(aplicacao.produtoId);
 
-      // Busca o produto associado usando o ID do produto na aplicação
-      Product? produto =
-          await _productService.getProductById(aplicacao.produtoId);
+        aplicacoesComTipos.add({
+          'aplicacao': aplicacao,
+          'tipoProduto': produto?.tipo ?? 'Desconhecido',
+          'vigencia': produto?.vigencia ?? 0,
+          'carencia': produto?.intervaloDeSeguranca ?? 0,
+        });
+      }
 
-      // Adiciona o tipo do produto ao map
-      aplicacoesComTipos.add({
-        'aplicacao': aplicacao,
-        'tipoProduto': produto?.tipo ?? 'Desconhecido',
-        'vigencia': produto?.vigencia ?? 0, // Vigência do produto
-        'carencia': produto?.intervaloDeSeguranca ??
-            0 // Carência (intervalo de segurança)
-      });
+      return aplicacoesComTipos;
+    } catch (e) {
+      print('Erro ao buscar aplicações: $e');
+      return [];
     }
-
-    return aplicacoesComTipos;
   }
 
   // Novo método para agrupar aplicações por tipo de produto
   Future<List<Map<String, dynamic>>> getAplicacoesAgrupadasPorTipo(
-      int gleba_id) async {
+      int glebaId) async {
     List<Map<String, dynamic>> aplicacoesComTipos =
-        await getAplicacoesWithProdutoTipoByGlebaId(gleba_id);
+        await getAplicacoesWithProdutoTipoByGlebaId(glebaId);
+    return _agruparAplicacoesPorTipo(aplicacoesComTipos);
+  }
 
-    // Mapa para agrupar os dados
+  // Método auxiliar para agrupar aplicações por tipo
+  List<Map<String, dynamic>> _agruparAplicacoesPorTipo(
+      List<Map<String, dynamic>> aplicacoesComTipos) {
     Map<String, List<Map<String, dynamic>>> agrupadoPorTipo = {};
 
-    // Agrupar por tipo de produto
     for (var aplicacaoComTipo in aplicacoesComTipos) {
       String tipoProduto = aplicacaoComTipo['tipoProduto'];
 
-      if (!agrupadoPorTipo.containsKey(tipoProduto)) {
-        agrupadoPorTipo[tipoProduto] = [];
-      }
-
-      agrupadoPorTipo[tipoProduto]!.add(aplicacaoComTipo);
+      agrupadoPorTipo.putIfAbsent(tipoProduto, () => []).add(aplicacaoComTipo);
     }
 
-    // Converter o agrupamento para uma lista
-    List<Map<String, dynamic>> agrupadoFinal =
-        agrupadoPorTipo.entries.map((entry) {
+    return agrupadoPorTipo.entries.map((entry) {
       String tipo = entry.key;
       List<Map<String, dynamic>> aplicacoes = entry.value;
 
-      // Somar os valores de vigência e carência
       double totalVigencia =
           aplicacoes.fold(0, (prev, curr) => prev + (curr['vigencia'] ?? 0));
       double totalCarencia =
@@ -80,8 +76,6 @@ class AplicacaoService {
         'totalCarencia': totalCarencia,
       };
     }).toList();
-
-    return agrupadoFinal;
   }
 
   // Método para inserir uma nova aplicação
@@ -95,9 +89,12 @@ class AplicacaoService {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('Aplicacao');
 
-    return List.generate(maps.length, (i) {
-      return Aplicacao.fromMap(maps[i]);
-    });
+    return List.generate(maps.length, (i) => Aplicacao.fromMap(maps[i]));
+  }
+
+  Future<String> getProdutoNomeComercial(int produtoId) async {
+    final produto = await _productService.getProductById(produtoId);
+    return produto?.nomeComercial ?? 'Produto não encontrado';
   }
 
   // Método para buscar aplicações por ID da Gleba
@@ -105,9 +102,10 @@ class AplicacaoService {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       'Aplicacao',
-      where: 'gleba_id = ?', // Corrigido para gleba_id
+      where: 'gleba_id = ?',
       whereArgs: [glebaId],
     );
+
     return result.map((map) => Aplicacao.fromMap(map)).toList();
   }
 
