@@ -94,17 +94,38 @@ class _EditAplicacaoScreenState extends State<EditAplicacaoScreen> {
     }
   }
 
+  void _deleteAplicacao() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmação'),
+          content: const Text('Deseja realmente excluir esta aplicação?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await _aplicacaoService.deleteAplicacao(widget.aplicacao.id!);
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Aplicação'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _updateAplicacao,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -238,12 +259,28 @@ class _EditAplicacaoScreenState extends State<EditAplicacaoScreen> {
                 },
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _updateAplicacao,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text('Salvar Aplicação'),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _deleteAplicacao,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text('Excluir'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _updateAplicacao,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: const Text('Salvar'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

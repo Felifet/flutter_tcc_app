@@ -41,7 +41,7 @@ class _GraficosScreenState extends State<GraficosScreen> {
     }
   }
 
-  List<BarChartGroupData> _buildBarChartData() {
+  List<BarChartGroupData> _buildHorizontalBarChartData() {
     int index = 0;
     return _dadosAgrupados.map((entry) {
       double vigencia = entry['totalVigencia'].toDouble();
@@ -99,36 +99,46 @@ class _GraficosScreenState extends State<GraficosScreen> {
               child: _dadosAgrupados.isNotEmpty
                   ? BarChart(
                       BarChartData(
-                        barGroups: _buildBarChartData(),
+                        barGroups: _buildHorizontalBarChartData(),
                         borderData: FlBorderData(show: false),
                         titlesData: FlTitlesData(
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              interval: 10,
-                              reservedSize: 28,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  value.toInt().toString(),
-                                  style: const TextStyle(fontSize: 12),
-                                );
-                              },
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
+                              interval: 1,
                               getTitlesWidget: (value, meta) {
                                 if (value.toInt() < _dadosAgrupados.length) {
                                   String tipoProduto =
                                       _dadosAgrupados[value.toInt()]
                                           ['tipoProduto'];
-                                  return Text(
-                                    tipoProduto,
-                                    style: const TextStyle(fontSize: 10),
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Text(
+                                      tipoProduto,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                   );
                                 }
                                 return const Text('');
+                              },
+                              reservedSize: 80,
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              interval: 10,
+                              getTitlesWidget: (value, meta) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 10),
+                                );
                               },
                             ),
                           ),
@@ -151,6 +161,9 @@ class _GraficosScreenState extends State<GraficosScreen> {
                             },
                           ),
                         ),
+                        alignment: BarChartAlignment.spaceAround,
+                        groupsSpace: 15,
+                        gridData: FlGridData(show: false),
                       ),
                     )
                   : const Center(
