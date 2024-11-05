@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_tcc_app/src/models/gleba_model.dart';
 import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
 import 'package:flutter_tcc_app/src/services/gleba_service.dart';
@@ -13,6 +14,7 @@ class _GraficosScreenState extends State<GraficosScreen> {
   Gleba? _selectedGleba;
   List<Gleba> _glebas = [];
   List<Map<String, dynamic>> _dadosAgrupados = [];
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -27,45 +29,88 @@ class _GraficosScreenState extends State<GraficosScreen> {
 
   Future<void> _filterAplicacoes() async {
     if (_selectedGleba != null) {
-      print("Selecionou a Gleba ID: ${_selectedGleba!.id}");
-
-      // Chamando o serviço para buscar as aplicações por Gleba
       _dadosAgrupados = await AplicacaoService()
           .getAplicacoesAgrupadasPorTipo(_selectedGleba!.id!);
-
-      print("Aplicações filtradas: $_dadosAgrupados");
-
       setState(() {});
-    } else {
-      print("Nenhuma gleba selecionada.");
     }
   }
 
-  List<BarChartGroupData> _buildHorizontalBarChartData() {
-    int index = 0;
-    return _dadosAgrupados.map((entry) {
-      double vigencia = entry['totalVigencia'].toDouble();
-      double carencia = entry['totalCarencia'].toDouble();
+  List<LineChartBarData> _buildLineBarsData() {
+    List<LineChartBarData> barDataList = [];
+    for (int i = 0; i < _dadosAgrupados.length; i++) {
+      final aplicacao = _dadosAgrupados[i];
+      final dataAplicacao = aplicacao['dataAplicacao'];
+      final carencia = aplicacao['carencia'];
 
-      return BarChartGroupData(
-        x: index++,
-        barRods: [
-          BarChartRodData(
-            toY: vigencia,
+      if (dataAplicacao != null && carencia != null && carencia.isFinite) {
+        final double startX = dataAplicacao.millisecondsSinceEpoch.toDouble();
+        final double endX = startX + carencia;
+
+        barDataList.add(
+          LineChartBarData(
+            spots: [FlSpot(startX, i.toDouble()), FlSpot(endX, i.toDouble())],
+            isCurved: false,
+            barWidth: 4,
             color: Colors.blue,
-            width: 12,
-            borderRadius: BorderRadius.circular(4),
           ),
-          BarChartRodData(
-            toY: carencia,
-            color: Colors.green,
-            width: 12,
-            borderRadius: BorderRadius.circular(4),
+        );
+      }
+    }
+    return barDataList;
+  }
+
+  Widget _buildChart() {
+    final double minX = DateTime(2024, 10, 1).millisecondsSinceEpoch.toDouble();
+    final double maxX =
+        DateTime(2024, 10, 30).millisecondsSinceEpoch.toDouble();
+
+    return Container(
+      width: 800, // Largura fixa para evitar erro de layout
+      child: LineChart(
+        LineChartData(
+          minX: minX,
+          maxX: maxX,
+          minY: 0,
+          maxY: _dadosAgrupados.length.toDouble(),
+          lineBarsData: _buildLineBarsData(),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, _) {
+                  if (value.toInt() < _dadosAgrupados.length) {
+                    return Text(_dadosAgrupados[value.toInt()]['tipoProduto'],
+                        style: TextStyle(fontSize: 12));
+                  }
+                  return Text('');
+                },
+                reservedSize: 80,
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, _) {
+                  // Converter o valor para a semana correspondente
+                  final int weekNumber =
+                      ((DateTime.fromMillisecondsSinceEpoch(value.toInt()).day -
+                                      1) /
+                                  7)
+                              .floor() +
+                          1;
+                  return Text('Semana $weekNumber',
+                      style: TextStyle(fontSize: 10));
+                },
+                interval: (maxX - minX) /
+                    4, // Intervalo de uma semana aproximadamente
+              ),
+            ),
           ),
-        ],
-        showingTooltipIndicators: [0],
-      );
-    }).toList();
+          gridData: FlGridData(show: false),
+          borderData: FlBorderData(show: false),
+        ),
+      ),
+    );
   }
 
   @override
@@ -97,74 +142,10 @@ class _GraficosScreenState extends State<GraficosScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: _dadosAgrupados.isNotEmpty
-                  ? BarChart(
-                      BarChartData(
-                        barGroups: _buildHorizontalBarChartData(),
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          topTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              interval: 1,
-                              getTitlesWidget: (value, meta) {
-                                if (value.toInt() < _dadosAgrupados.length) {
-                                  String tipoProduto =
-                                      _dadosAgrupados[value.toInt()]
-                                          ['tipoProduto'];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Text(
-                                      tipoProduto,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  );
-                                }
-                                return const Text('');
-                              },
-                              reservedSize: 80,
-                            ),
-                          ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              interval: 10,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  value.toInt().toString(),
-                                  style: const TextStyle(fontSize: 10),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        barTouchData: BarTouchData(
-                          touchTooltipData: BarTouchTooltipData(
-                            tooltipPadding: const EdgeInsets.all(8),
-                            tooltipMargin: 5,
-                            tooltipRoundedRadius: 10,
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              String tipoProduto =
-                                  _dadosAgrupados[group.x.toInt()]
-                                      ['tipoProduto'];
-                              String rodName =
-                                  rodIndex == 0 ? 'Vigência' : 'Carência';
-                              return BarTooltipItem(
-                                '$tipoProduto\n$rodName: ${rod.toY.toStringAsFixed(2)}',
-                                const TextStyle(color: Colors.white),
-                              );
-                            },
-                          ),
-                        ),
-                        alignment: BarChartAlignment.spaceAround,
-                        groupsSpace: 15,
-                        gridData: FlGridData(show: false),
-                      ),
+                  ? SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      controller: _scrollController,
+                      child: _buildChart(),
                     )
                   : const Center(
                       child: Text(

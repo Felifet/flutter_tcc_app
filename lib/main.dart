@@ -30,6 +30,7 @@ import 'src/screens/aplicacao/add_aplicacao_screen.dart';
 import 'src/screens/aplicacao/aplicacao_edit_screen.dart';
 import 'src/screens/aplicacao/aplicacao_list_screen.dart';
 import 'src/screens/menu_screen.dart';
+import 'src/screens/home_screen.dart';
 import 'src/screens/product/product_list_screen.dart';
 import 'src/screens/product/add_product_screen.dart';
 import 'src/screens/product/product_edit_screen.dart';
@@ -59,7 +60,8 @@ class MyApp extends StatelessWidget {
 
   Map<String, WidgetBuilder> _buildRoutes() {
     return {
-      '/': (context) => MenuScreen(),
+      '/': (context) => HomeScreen(),
+      '/menu': (context) => MenuScreen(),
       '/products': (context) => const ProductListScreen(),
       '/add_product': (context) => const AddProductScreen(),
       '/edit_product': (context) => const ProductEditScreen(),

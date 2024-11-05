@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import '../../models/doenca_praga_model.dart';
 import '../../services/db_helper.dart';
 import 'doenca_praga_edit_screen.dart';
@@ -74,38 +76,51 @@ class _DoencaPragaListScreenState extends State<DoencaPragaListScreen> {
       ),
       body: _filteredDoencasPragas.isEmpty
           ? const Center(child: Text('Nenhuma Doença/Praga encontrada.'))
-          : ListView.separated(
+          : GridView.builder(
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                childAspectRatio: 3,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+              ),
               itemCount: _filteredDoencasPragas.length,
-              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final doencaPraga = _filteredDoencasPragas[index];
-                return ListTile(
-                  contentPadding: const EdgeInsets.all(16.0),
-                  title: Text(
-                    doencaPraga.descricaoCurta,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    doencaPraga.descricaoLonga ?? '',
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DoencaPragaEditScreen(
-                          doencaPraga: doencaPraga,
+                return Card(
+                  elevation: 4,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DoencaPragaEditScreen(
+                            doencaPraga: doencaPraga,
+                          ),
                         ),
+                      ).then((_) => _loadDoencasPragas());
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            doencaPraga.descricaoCurta,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            doencaPraga.descricaoLonga ?? '',
+                            style: const TextStyle(fontSize: 18),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ).then((_) => _loadDoencasPragas());
-                  },
+                    ),
+                  ),
                 );
               },
             ),
@@ -115,6 +130,42 @@ class _DoencaPragaListScreenState extends State<DoencaPragaListScreen> {
               .then((_) => _loadDoencasPragas());
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

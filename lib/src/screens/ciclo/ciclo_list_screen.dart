@@ -3,6 +3,8 @@ import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import '../../services/ciclo_service.dart';
 import 'ciclo_edit_screen.dart';
 import 'add_ciclo_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
 
 class CicloListScreen extends StatefulWidget {
   const CicloListScreen({super.key});
@@ -98,29 +100,74 @@ class _CicloListScreenState extends State<CicloListScreen> {
           } else {
             return ListView.separated(
               itemCount: _filteredCicloList.length,
-              separatorBuilder: (context, index) => const Divider(),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: 10.0), // Espaço entre os cards
               itemBuilder: (context, index) {
                 final ciclo = _filteredCicloList[index];
-                return ListTile(
-                  title: Text(
-                    ciclo.descricao,
-                    style: const TextStyle(fontSize: 18.0),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CicloEditScreen(ciclo: ciclo),
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 20.0), // Margem lateral do card
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CicloEditScreen(ciclo: ciclo),
+                          ),
+                        ).then((_) {
+                          _refreshCicloList();
+                        });
+                      },
+                      child: Text(
+                        ciclo.descricao,
+                        style: const TextStyle(fontSize: 18.0),
                       ),
-                    ).then((_) {
-                      _refreshCicloList();
-                    });
-                  },
+                    ),
+                  ),
                 );
               },
             );
           }
         },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 50, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

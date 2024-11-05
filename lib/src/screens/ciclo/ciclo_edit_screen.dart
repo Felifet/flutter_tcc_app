@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/services/db_helper.dart';
 import '../../services/ciclo_service.dart';
 import '../../models/ciclo_model.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
 
 class CicloEditScreen extends StatefulWidget {
   final Ciclo? ciclo;
@@ -115,6 +117,42 @@ class _CicloEditScreenState extends State<CicloEditScreen> {
                     child: const Text('Salvar'),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 50, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           ),

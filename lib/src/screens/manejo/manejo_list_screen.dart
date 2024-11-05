@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_add_screen.dart';
 import 'package:flutter_tcc_app/src/screens/manejo/manejo_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/services/manejo_service.dart';
 
 class ManejoListScreen extends StatefulWidget {
@@ -97,32 +99,53 @@ class _ManejoListScreenState extends State<ManejoListScreen> {
           } else if (!snapshot.hasData || _filteredManejoList.isEmpty) {
             return const Center(child: Text('Nenhum manejo encontrado.'));
           } else {
-            return ListView.separated(
+            return GridView.builder(
+              padding: const EdgeInsets.all(16.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1,
+                childAspectRatio: 3,
+                crossAxisSpacing: 16.0,
+                mainAxisSpacing: 16.0,
+              ),
               itemCount: _filteredManejoList.length,
-              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final manejo = _filteredManejoList[index];
-                return ListTile(
-                  title: Text(
-                    manejo.nome,
-                    style: const TextStyle(fontSize: 18.0),
-                  ),
-                  subtitle: Text(
-                    manejo.descricao,
-                    style: const TextStyle(fontSize: 14.0),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditManejoScreen(
-                          manejo: manejo,
+                return Card(
+                  elevation: 4,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditManejoScreen(
+                            manejo: manejo,
+                          ),
                         ),
+                      ).then((_) {
+                        _refreshManejoList();
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            manejo.nome,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            manejo.descricao,
+                            style: const TextStyle(fontSize: 16),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ).then((_) {
-                      _refreshManejoList();
-                    });
-                  },
+                    ),
+                  ),
                 );
               },
             );
@@ -141,6 +164,42 @@ class _ManejoListScreenState extends State<ManejoListScreen> {
           });
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -6,7 +6,7 @@ class CultivarEditScreen extends StatefulWidget {
   final Cultivar?
       cultivar; // Pode ser nulo se estivermos adicionando uma nova cultivar
 
-  CultivarEditScreen({this.cultivar});
+  const CultivarEditScreen({Key? key, this.cultivar}) : super(key: key);
 
   @override
   _CultivarEditScreenState createState() => _CultivarEditScreenState();
@@ -52,12 +52,41 @@ class _CultivarEditScreenState extends State<CultivarEditScreen> {
     }
   }
 
+  void _confirmDeleteCultivar() async {
+    if (widget.cultivar != null) {
+      final shouldDelete = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: const Text(
+              'Você tem certeza de que deseja excluir esta cultivar?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Excluir'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldDelete == true) {
+        await _cultivarController.deleteCultivar(widget.cultivar!.id!);
+        Navigator.pop(context); // Volta para a lista após exclusão
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            widget.cultivar == null ? 'Adicionar Cultivar' : 'Editar Cultivar'),
+          widget.cultivar == null ? 'Adicionar Cultivar' : 'Editar Cultivar',
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -67,7 +96,8 @@ class _CultivarEditScreenState extends State<CultivarEditScreen> {
             children: [
               TextFormField(
                 controller: _nomeController,
-                decoration: InputDecoration(labelText: 'Nome da Cultivar'),
+                decoration:
+                    const InputDecoration(labelText: 'Nome da Cultivar'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira o nome da cultivar';
@@ -75,10 +105,33 @@ class _CultivarEditScreenState extends State<CultivarEditScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveCultivar,
-                child: Text(widget.cultivar == null ? 'Salvar' : 'Atualizar'),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (widget.cultivar != null)
+                    SizedBox(
+                      width: 120, // Tamanho fixo para o botão "Excluir"
+                      child: ElevatedButton(
+                        onPressed: _confirmDeleteCultivar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text('Excluir'),
+                      ),
+                    ),
+                  SizedBox(
+                    width: 120, // Tamanho fixo para o botão "Salvar"
+                    child: ElevatedButton(
+                      onPressed: _saveCultivar,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child:
+                          Text(widget.cultivar == null ? 'Salvar' : 'Salvar'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

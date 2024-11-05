@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../models/cultivar_model.dart';
 import '../../controllers/cultivar_controller.dart';
 import 'cultivar_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
 
 class CultivarListScreen extends StatefulWidget {
   @override
@@ -26,11 +28,6 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
       _cultivares = cultivares;
       _filteredCultivares = cultivares;
     });
-  }
-
-  void _deleteCultivar(int id) async {
-    await _cultivarController.deleteCultivar(id);
-    _loadCultivares(); // Recarrega a lista após exclusão
   }
 
   void _filterCultivares(String query) {
@@ -80,20 +77,19 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
               itemCount: _filteredCultivares.length,
               itemBuilder: (context, index) {
                 final cultivar = _filteredCultivares[index];
-                return ListTile(
-                  title: Text(cultivar.nome),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () =>
-                        _showDeleteConfirmationDialog(cultivar.id!),
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  elevation: 4,
+                  child: ListTile(
+                    title: Text(cultivar.nome),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CultivarEditScreen(cultivar: cultivar),
+                      ),
+                    ).then((_) => _loadCultivares()),
                   ),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          CultivarEditScreen(cultivar: cultivar),
-                    ),
-                  ).then((_) => _loadCultivares()),
                 );
               },
             ),
@@ -104,32 +100,42 @@ class _CultivarListScreenState extends State<CultivarListScreen> {
         ).then((_) => _loadCultivares()),
         child: const Icon(Icons.add),
       ),
-    );
-  }
-
-  void _showDeleteConfirmationDialog(int id) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Excluir Cultivar'),
-          content:
-              const Text('Tem certeza de que deseja excluir esta cultivar?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                _deleteCultivar(id);
-                Navigator.pop(context);
-              },
-              child: const Text('Excluir'),
-            ),
-          ],
-        );
-      },
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 50, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
