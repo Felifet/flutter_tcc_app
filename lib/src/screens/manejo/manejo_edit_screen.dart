@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/models/manejo_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/services/manejo_service.dart';
 
 class EditManejoScreen extends StatefulWidget {
@@ -77,9 +79,50 @@ class _EditManejoScreenState extends State<EditManejoScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveChanges,
-              child: const Text('Salvar Alterações'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                textStyle: const TextStyle(fontSize: 16),
+              ),
+              child: const Text('Salvar'),
             ),
           ],
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

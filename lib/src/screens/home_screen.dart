@@ -49,9 +49,7 @@ class HomeScreen extends StatelessWidget {
             return const Center(child: Text('Nenhuma aplicação encontrada.'));
           } else {
             final data = snapshot.data!;
-            final groupedData = <String,
-                Map<String,
-                    Map<String, int>>>{}; // {ciclo: {gleba: {tipo: total}}}
+            final groupedData = <String, Map<String, Map<String, int>>>{};
 
             for (var item in data) {
               final cicloDescricao = item['ciclo_descricao'];

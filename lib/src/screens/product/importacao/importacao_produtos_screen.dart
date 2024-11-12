@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter_tcc_app/src/models/product_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/services/product_service.dart';
 
 class ImportacaoProdutosScreen extends StatefulWidget {
@@ -15,13 +17,12 @@ class ImportacaoProdutosScreen extends StatefulWidget {
 
 class _ImportacaoProdutosScreenState extends State<ImportacaoProdutosScreen> {
   File? _selectedFile;
-  bool _isLoading = false; // Variável para controlar a barra de carregamento
+  bool _isLoading = false;
 
-  // Método para selecionar o arquivo Excel
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['xlsx'], // Apenas arquivos Excel são permitidos
+      allowedExtensions: ['xlsx'],
     );
 
     if (result != null) {
@@ -35,50 +36,33 @@ class _ImportacaoProdutosScreenState extends State<ImportacaoProdutosScreen> {
     }
   }
 
-  // Método para importar dados do arquivo Excel
   Future<void> _importData() async {
     if (_selectedFile == null) return;
 
     setState(() {
-      _isLoading = true; // Inicia a barra de carregamento
+      _isLoading = true;
     });
 
     try {
       var bytes = _selectedFile!.readAsBytesSync();
       var excel = Excel.decodeBytes(bytes);
 
-      // Processa a primeira planilha
       for (var table in excel.tables.keys) {
         var sheet = excel.tables[table]!;
-
-        // Ignorando a primeira linha (cabeçalho)
         for (var row in sheet.rows.skip(1)) {
-          // Verifique se a linha possui dados suficientes
           if (row.length >= 7) {
-            // Verifica se a linha tem pelo menos 7 colunas
-            // Extrai os valores das colunas do Excel
-            var tipo = row[0]?.value?.toString() ?? '';
-            var nomeComercial = row[1]?.value?.toString() ?? '';
-            var principioAtivo = row[2]?.value?.toString() ?? '';
-            var classificacaoToxicologica = row[3]?.value?.toString();
-            var formulacao = row[4]?.value?.toString();
-            var dosagemComercial =
-                double.tryParse(row[5]?.value?.toString() ?? '');
-            var intervaloDeSeguranca =
-                int.tryParse(row[6]?.value?.toString() ?? '0') ?? 0;
-
-            Product product = Product(
-              tipo: tipo,
-              nomeComercial: nomeComercial,
-              principioAtivo: principioAtivo,
-              classificacaoToxicologica: classificacaoToxicologica,
-              formulacao: formulacao,
-              dosagemComercial: dosagemComercial,
-              intervaloDeSeguranca: intervaloDeSeguranca,
+            var product = Product(
+              tipo: row[0]?.value?.toString() ?? '',
+              nomeComercial: row[1]?.value?.toString() ?? '',
+              principioAtivo: row[2]?.value?.toString() ?? '',
+              classificacaoToxicologica: row[3]?.value?.toString(),
+              formulacao: row[4]?.value?.toString(),
+              dosagemComercial:
+                  double.tryParse(row[5]?.value?.toString() ?? ''),
+              intervaloDeSeguranca:
+                  int.tryParse(row[6]?.value?.toString() ?? '0') ?? 0,
             );
-            await _saveProductImport(product);
-          } else {
-            print('Linha com dados insuficientes: $row');
+            await ProductService().addProductImport(product);
           }
         }
       }
@@ -92,24 +76,8 @@ class _ImportacaoProdutosScreenState extends State<ImportacaoProdutosScreen> {
       );
     } finally {
       setState(() {
-        _isLoading = false; // Finaliza a barra de carregamento
+        _isLoading = false;
       });
-    }
-  }
-
-  // Método para salvar um produto no banco de dados através da importação
-  Future<void> _saveProductImport(Product product) async {
-    try {
-      int result = await ProductService().addProductImport(product);
-      if (result == -1) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao salvar produto.')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao salvar produto: $e')),
-      );
     }
   }
 
@@ -124,28 +92,92 @@ class _ImportacaoProdutosScreenState extends State<ImportacaoProdutosScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: _pickFile,
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey), // Cor neutra
-              child: const Text('Selecionar Arquivo Excel'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed:
-                  _isLoading || _selectedFile == null ? null : _importData,
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue), // Cor azul
-              child: _isLoading
-                  ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                  : const Text('Importar Dados'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Card(
+                  elevation: 4,
+                  child: InkWell(
+                    onTap: _pickFile,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: const [
+                          Icon(Icons.attach_file, size: 40, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text('Selecionar Arquivo'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 4,
+                  child: InkWell(
+                    onTap: (_selectedFile != null && !_isLoading)
+                        ? _importData
+                        : null,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.cloud_upload,
+                            size: 40,
+                            color: _selectedFile != null
+                                ? Colors.blue
+                                : Colors.grey,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('Importar Dados'),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             if (_selectedFile != null)
               Text('Arquivo selecionado: ${_selectedFile!.path}'),
+            if (_isLoading) const CircularProgressIndicator(),
           ],
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

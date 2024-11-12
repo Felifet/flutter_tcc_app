@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
 import 'package:flutter_tcc_app/src/screens/aplicacao/add_aplicacao_screen.dart';
 import 'package:flutter_tcc_app/src/screens/aplicacao/aplicacao_edit_screen.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/services/aplicacao_service.dart';
 
 class AplicacaoListScreen extends StatefulWidget {
@@ -33,14 +35,9 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
       List<Aplicacao> aplicacoesComProdutoNome = [];
 
       for (var aplicacao in aplicacoes) {
-        // Buscar o nome comercial do produto associado
         String nomeProduto = await AplicacaoService()
             .getProdutoNomeComercial(aplicacao.produtoId);
-
-        // Atribuir o nome comercial ao campo 'produtoNomeComercial' da aplicação
         aplicacao.produtoNomeComercial = nomeProduto;
-
-        // Adicionar a aplicação à lista temporária
         aplicacoesComProdutoNome.add(aplicacao);
       }
 
@@ -142,12 +139,12 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text('Aplicação feita na data: $formattedDate'),
+                  title: Text('Aplicação na data: $formattedDate'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Produto: ${aplicacao.produtoNomeComercial}'),
                       Text('Motivo: ${aplicacao.motivo}'),
+                      Text('Produto: ${aplicacao.produtoNomeComercial}'),
                     ],
                   ),
                   onTap: () => _navigateToEditAplicacao(aplicacao),
@@ -160,6 +157,41 @@ class _AplicacaoListScreenState extends State<AplicacaoListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddAplicacao,
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home),
+              color: Colors.white,
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.list),
+              color: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MenuScreen()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.exit_to_app_sharp),
+              color: Colors.white,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

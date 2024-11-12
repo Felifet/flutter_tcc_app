@@ -5,12 +5,19 @@ class RegistroEstagioFenologico {
   int? glebaId;
   int? estagioFenologicoId;
 
+  String? nomeCiclo;
+  String? nomeGleba;
+  String? nomeEstagioFenologico;
+
   RegistroEstagioFenologico({
     this.id,
     required this.datetime,
     this.cicloId,
     this.glebaId,
     this.estagioFenologicoId,
+    this.nomeCiclo,
+    this.nomeGleba,
+    this.nomeEstagioFenologico,
   });
 
   // Método para converter o objeto em um Map (usado para operações no banco de dados)
@@ -32,6 +39,9 @@ class RegistroEstagioFenologico {
       cicloId: map['ciclo_id'],
       glebaId: map['gleba_id'],
       estagioFenologicoId: map['estagioFenologico_id'],
+      nomeCiclo: map['nome_ciclo'],
+      nomeGleba: map['nome_gleba'],
+      nomeEstagioFenologico: map['nome_estagio_fenologico'],
     );
   }
 }

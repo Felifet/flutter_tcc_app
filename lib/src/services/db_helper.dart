@@ -854,6 +854,55 @@ class DBHelper {
       return -1; // Retorna um código de erro personalizado
     }
   }
+
+  Future<String> getCicloNameById(int cicloId) async {
+    final db = await database;
+    final result = await db.query('ciclo', // Nome da tabela
+        where: 'id = ?',
+        whereArgs: [cicloId],
+        limit: 1);
+
+    if (result.isNotEmpty) {
+      // Converte explicitamente para String e retorna
+      return result.first['descricao']
+          .toString(); // 'nome' deve ser o nome da coluna que contém o nome do ciclo
+    } else {
+      return 'Ciclo não encontrado'; // Caso não encontre o ciclo
+    }
+  }
+
+  Future<String> getGlebaNameById(int glebaId) async {
+    final db = await database;
+    final result = await db.query('gleba', // Nome da tabela
+        where: 'id = ?',
+        whereArgs: [glebaId],
+        limit: 1);
+
+    if (result.isNotEmpty) {
+      // Converte explicitamente para String e retorna
+      return result.first['nomeIdentificador']
+          .toString(); // 'nome' deve ser o nome da coluna que contém o nome da gleba
+    } else {
+      return 'Gleba não encontrada'; // Caso não encontre a gleba
+    }
+  }
+
+  Future<String> getEstagioFenologicoNameById(int estagioFenologicoId) async {
+    final db = await database;
+    final result = await db.query('EstagioFenologico ', // Nome da tabela
+        where: 'id = ?',
+        whereArgs: [estagioFenologicoId],
+        limit: 1);
+
+    if (result.isNotEmpty) {
+      // Converte explicitamente para String e retorna
+      return result.first['descricao']
+          .toString(); // 'nome' deve ser o nome da coluna que contém o nome do estágio fenológico
+    } else {
+      return 'Estágio não encontrado'; // Caso não encontre o estágio fenológico
+    }
+  }
+
 // ------------------ CRUD de Aplicacoes ------------------ //
 
   Future<int> insertAplicacao(Aplicacao aplicacao) async {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/models/estagiofenologico_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/services/estagiofenologico_service.dart';
 import 'add_estagiofenologico_screen.dart';
 import 'estagiofenologico_edit_screen.dart';
@@ -101,27 +103,30 @@ class _EstagioFenologicoListScreenState
             return const Center(
                 child: Text('Nenhum estágio fenológico encontrado.'));
           } else {
-            return ListView.separated(
+            return ListView.builder(
               itemCount: _filteredEstagioList.length,
-              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
                 final estagio = _filteredEstagioList[index];
-                return ListTile(
-                  title: Text(
-                    estagio.descricao,
-                    style: const TextStyle(fontSize: 18.0),
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: ListTile(
+                    title: Text(
+                      estagio.descricao,
+                      style: const TextStyle(fontSize: 18.0),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EstagioFenologicoEditScreen(
+                              estagioId: estagio.id!),
+                        ),
+                      ).then((_) {
+                        _refreshEstagioFenologicoList();
+                      });
+                    },
                   ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EstagioFenologicoEditScreen(estagioId: estagio.id!),
-                      ),
-                    ).then((_) {
-                      _refreshEstagioFenologicoList();
-                    });
-                  },
                 );
               },
             );
@@ -140,6 +145,42 @@ class _EstagioFenologicoListScreenState
           });
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/controllers/registro_manejo_controller.dart';
 import 'package:flutter_tcc_app/src/models/registro_manejo_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:intl/intl.dart';
 
 class RegistroManejoListScreen extends StatefulWidget {
@@ -38,7 +40,12 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
   void _filterRegistrosManejo(String query) {
     final filtered = _filteredRegistrosManejo
         .where((registro) =>
-            registro.glebaId.toString().contains(query.toLowerCase()))
+            registro.glebaNomeIdentificador!
+                .toLowerCase()
+                .contains(query.toLowerCase()) ||
+            registro.datetime.toString().contains(query) ||
+            registro.cicloDescricao!.toLowerCase().contains(query) ||
+            registro.manejoDescricao!.toLowerCase().contains(query))
         .toList();
     setState(() {
       _filteredRegistrosManejo = filtered;
@@ -55,7 +62,7 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final DateFormat dateFormat = DateFormat('dd.MM.yyyy');
+    final DateFormat dateFormat = DateFormat('dd/MM/yyyy - HH:mm');
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
@@ -63,7 +70,7 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
                 controller: _searchController,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'Pesquisar por ID da Gleba...',
+                  hintText: 'Pesquisar... Gleba, Ciclo, Manejo...',
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: _clearSearch,
@@ -97,25 +104,43 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
             return const Center(
                 child: Text('Nenhum registro de manejo encontrado'));
           } else {
-            return ListView.builder(
-              itemCount: _filteredRegistrosManejo.length,
-              itemBuilder: (context, index) {
-                final registro = _filteredRegistrosManejo[index];
-                return ListTile(
-                  title: Text(
-                      'Data Registro: ${dateFormat.format(registro.datetime.toLocal())}'),
-                  subtitle: Text('Gleba ID: ${registro.glebaId}'),
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/registro_manejo_edit',
-                      arguments: registro,
-                    ).then((_) {
-                      _refreshRegistroManejoList();
-                    });
-                  },
-                );
-              },
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ListView.builder(
+                itemCount: _filteredRegistrosManejo.length,
+                itemBuilder: (context, index) {
+                  final registro = _filteredRegistrosManejo[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    elevation: 4,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16.0),
+                      title: Text(
+                        'Data Registro: ${dateFormat.format(registro.datetime.toLocal())}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Gleba: ${registro.glebaNomeIdentificador}'),
+                          Text('Ciclo: ${registro.cicloDescricao}'),
+                          Text('Manejo: ${registro.manejoDescricao}'),
+                          const SizedBox(height: 4),
+                        ],
+                      ),
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/registro_manejo_edit',
+                          arguments: registro,
+                        ).then((_) {
+                          _refreshRegistroManejoList();
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
             );
           }
         },
@@ -127,6 +152,42 @@ class _RegistroManejoListScreenState extends State<RegistroManejoListScreen> {
           });
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

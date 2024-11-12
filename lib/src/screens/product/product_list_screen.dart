@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import '../../models/product_model.dart';
 import '../../controllers/product_controller.dart';
 import 'add_product_screen.dart';
@@ -149,33 +151,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 } else {
                   return ListView.separated(
                     itemCount: _filteredProductList.length,
-                    separatorBuilder: (context, index) => const Divider(
-                      height: 1.0,
-                      color: Colors.grey,
-                    ),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final product = _filteredProductList[index];
 
-                      return ListTile(
-                        title: Text(
-                          product.nomeComercial,
-                          style:
-                              const TextStyle(fontSize: 20), // Aumenta a fonte
+                      return Card(
+                        elevation: 3,
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(16),
+                          title: Text(
+                            product.nomeComercial,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            'Tipo: ${product.tipo}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductEditScreen(product: product),
+                              ),
+                            ).then((_) => _refreshProductList());
+                          },
                         ),
-                        subtitle: Text(
-                          'Tipo: ${product.tipo}',
-                          style:
-                              const TextStyle(fontSize: 18), // Aumenta a fonte
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProductEditScreen(product: product),
-                            ),
-                          ).then((_) => _refreshProductList());
-                        },
                       );
                     },
                   );
@@ -195,6 +199,42 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ).then((_) => _refreshProductList());
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => MenuScreen()));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,5 @@
-import '../models/registro_estagiofenologico_model.dart';
-import '../services/registro_estagio_fenologico.dart';
+import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
+import 'package:flutter_tcc_app/src/services/registro_estagio_fenologico.dart';
 
 class RegistroEstagioFenologicoController {
   final RegistroEstagioFenologicoService _service =
@@ -12,7 +12,7 @@ class RegistroEstagioFenologicoController {
       return await _service.insertRegistroEstagioFenologico(registro);
     } catch (e) {
       print('Erro ao adicionar registro de estágio fenológico: $e');
-      return -1; // Código de erro
+      return -1;
     }
   }
 
@@ -24,11 +24,11 @@ class RegistroEstagioFenologicoController {
         return await _service.updateRegistroEstagioFenologico(registro);
       } catch (e) {
         print('Erro ao atualizar registro de estágio fenológico: $e');
-        return -1; // Código de erro
+        return -1;
       }
     } else {
       print('Erro: ID do registro é nulo');
-      return -1; // Código de erro para id nulo
+      return -1;
     }
   }
 
@@ -38,18 +38,18 @@ class RegistroEstagioFenologicoController {
       return await _service.deleteRegistroEstagioFenologico(id);
     } catch (e) {
       print('Erro ao deletar registro de estágio fenológico: $e');
-      return -1; // Código de erro
+      return -1;
     }
   }
 
-  // Recupera todos os registros de estágio fenológico
+  // Recupera todos os registros de estágio fenológico com os nomes
   Future<List<RegistroEstagioFenologico>>
       getRegistrosEstagioFenologico() async {
     try {
       return await _service.getRegistrosEstagioFenologico();
     } catch (e) {
       print('Erro ao buscar registros de estágio fenológico: $e');
-      return []; // Retorna lista vazia em caso de erro
+      return [];
     }
   }
 
@@ -59,8 +59,8 @@ class RegistroEstagioFenologicoController {
     try {
       return await _service.getRegistroEstagioFenologicoById(id);
     } catch (e) {
-      print('Erro ao buscar registro de estágio fenológico por ID: $e');
-      return null; // Retorna null em caso de erro
+      print('Erro ao buscar registro de estágio fenológico: $e');
+      return null;
     }
   }
 }

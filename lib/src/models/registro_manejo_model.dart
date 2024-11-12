@@ -5,12 +5,20 @@ class RegistroManejo {
   final int glebaId;
   final int manejoId;
 
+  // Campos adicionais para exibir na tela
+  String? glebaNomeIdentificador;
+  String? cicloDescricao;
+  String? manejoDescricao;
+
   RegistroManejo({
-    this.id, // Corrigido para permitir null
+    this.id,
     required this.datetime,
     required this.cicloId,
     required this.glebaId,
     required this.manejoId,
+    this.glebaNomeIdentificador,
+    this.cicloDescricao,
+    this.manejoDescricao,
   });
 
   factory RegistroManejo.fromMap(Map<String, dynamic> map) {
@@ -20,12 +28,15 @@ class RegistroManejo {
       cicloId: map['ciclo_id'],
       glebaId: map['gleba_id'],
       manejoId: map['manejo_id'],
+      glebaNomeIdentificador: map['gleba_nome_identificador'],
+      cicloDescricao: map['ciclo_descricao'],
+      manejoDescricao: map['manejo_descricao'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id, // Permite null para inserções
+      'id': id,
       'datetime': datetime.toIso8601String(),
       'ciclo_id': cicloId,
       'gleba_id': glebaId,

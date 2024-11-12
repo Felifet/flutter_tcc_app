@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tcc_app/src/models/registro_estagiofenologico_model.dart';
+import 'package:flutter_tcc_app/src/screens/home_screen.dart';
+import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
 import 'package:flutter_tcc_app/src/screens/registro_estagioFenologico/registro_fenologico_edit_screen.dart';
 import 'package:flutter_tcc_app/src/services/db_helper.dart';
+import 'package:intl/intl.dart';
 
 class RegistroEstagioListScreen extends StatefulWidget {
   const RegistroEstagioListScreen({Key? key}) : super(key: key);
@@ -23,16 +26,19 @@ class _RegistroEstagioListScreenState extends State<RegistroEstagioListScreen> {
     _loadRegistros();
   }
 
+  // Atualizando o método para carregar os registros
   Future<void> _loadRegistros() async {
     _registros = await DBHelper().getRegistrosEstagioFenologico();
     setState(() {
-      _filteredRegistros = _registros; // Initialize with all registros
+      _filteredRegistros = _registros; // Inicializando com todos os registros
     });
   }
 
+  // Método para filtrar os registros
   void _filterRegistros(String query) {
     final filtered = _registros.where((registro) {
-      final dateString = registro.datetime.toString(); // Convert to string
+      final dateString =
+          registro.datetime.toString(); // Convertendo para string
       return dateString.toLowerCase().contains(query.toLowerCase()) ||
           registro.cicloId.toString().contains(query) ||
           registro.glebaId.toString().contains(query) ||
@@ -44,14 +50,16 @@ class _RegistroEstagioListScreenState extends State<RegistroEstagioListScreen> {
     });
   }
 
+  // Método para limpar a pesquisa
   void _clearSearch() {
     _searchController.clear();
     setState(() {
       _isSearching = false;
-      _filteredRegistros = _registros; // Reset to all registros
+      _filteredRegistros = _registros; // Resetando para todos os registros
     });
   }
 
+  // Navegar para a tela de edição do registro
   void _navigateToEdit(RegistroEstagioFenologico registro) {
     Navigator.push(
       context,
@@ -113,10 +121,75 @@ class _RegistroEstagioListScreenState extends State<RegistroEstagioListScreen> {
                 itemBuilder: (context, index) {
                   final registro = _filteredRegistros[index];
                   return Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
-                      title: Text('Data: ${registro.datetime}'),
-                      subtitle: Text(
-                          'Ciclo ID: ${registro.cicloId}, Gleba ID: ${registro.glebaId}, Estágio ID: ${registro.estagioFenologicoId}'),
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        'Data do Registro: ${DateFormat('dd/MM/yyyy - HH:mm').format(registro.datetime)}', // Formato da data
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FutureBuilder<String>(
+                            future: DBHelper().getCicloNameById(registro
+                                    .cicloId ??
+                                -1), // Substitua por um valor padrão se for null
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+                              if (snapshot.hasData) {
+                                return Text(
+                                  'Ciclo: ${snapshot.data}',
+                                  style: const TextStyle(fontSize: 14),
+                                );
+                              }
+                              return const Text('Ciclo: Não encontrado');
+                            },
+                          ),
+                          FutureBuilder<String>(
+                            future: DBHelper().getGlebaNameById(
+                                registro.glebaId ??
+                                    -1), // Substitua por um valor padrão se
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+                              if (snapshot.hasData) {
+                                return Text(
+                                  'Gleba: ${snapshot.data}',
+                                  style: const TextStyle(fontSize: 14),
+                                );
+                              }
+                              return const Text('Gleba: Não encontrada');
+                            },
+                          ),
+                          FutureBuilder<String>(
+                            future: DBHelper().getEstagioFenologicoNameById(
+                                registro.estagioFenologicoId ?? -1),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+                              if (snapshot.hasData) {
+                                return Text(
+                                  'Estágio: ${snapshot.data}',
+                                  style: const TextStyle(fontSize: 14),
+                                );
+                              }
+                              return const Text('Estágio: Não encontrado');
+                            },
+                          ),
+                        ],
+                      ),
                       onTap: () => _navigateToEdit(registro),
                     ),
                   );
@@ -128,6 +201,44 @@ class _RegistroEstagioListScreenState extends State<RegistroEstagioListScreen> {
           Navigator.pushNamed(context, '/add_registro_estagio');
         },
         child: const Icon(Icons.add),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color.fromARGB(255, 5, 94, 105),
+        child: Container(
+          height: 20, // Ajuste a altura da BottomAppBar
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.list),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MenuScreen()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.exit_to_app_sharp),
+                color: const Color.fromARGB(255, 255, 255, 255),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
