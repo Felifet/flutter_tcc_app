@@ -769,6 +769,31 @@ class DBHelper {
     }
   }
 
+  // Obter registros de manejo com dados de Gleba, Ciclo e Manejo
+  Future<List<Map<String, dynamic>>> getRegistrosManejos() async {
+    try {
+      final db = await database;
+      return await db.rawQuery('''
+        SELECT 
+          rm.id,
+          rm.datetime,
+          rm.gleba_id,
+          rm.ciclo_id,
+          rm.manejo_id,
+          g.nome_identificador AS gleba_nome_identificador,
+          c.descricao AS ciclo_descricao,
+          m.descricao AS manejo_descricao
+        FROM registro_manejo rm
+        JOIN gleba g ON rm.gleba_id = g.id
+        JOIN ciclo c ON rm.ciclo_id = c.id
+        JOIN manejo m ON rm.manejo_id = m.id
+      ''');
+    } catch (e) {
+      print("Erro ao buscar Registros de Manejo: $e");
+      return []; // Retorna uma lista vazia em caso de erro
+    }
+  }
+
 // ------------------ CRUD de Registro Estágio Fenológico ------------------ //
 
 // Inserir um novo Registro de Estágio Fenológico

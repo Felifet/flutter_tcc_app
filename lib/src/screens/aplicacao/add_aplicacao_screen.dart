@@ -78,6 +78,12 @@ class _AddAplicacaoScreenState extends State<AddAplicacaoScreen> {
     _doencasPragas = await DoencaPragaService().getDoencasPragas();
     _ciclos = await CicloService().getCiclos();
     _tiposProdutos = await ProductService().getDistinctProductTypes();
+
+    // Selecionar o maior ciclo
+    if (_ciclos.isNotEmpty) {
+      _selectedCiclo = _ciclos.reduce((a, b) => a.id! > b.id! ? a : b);
+    }
+
     setState(() {});
   }
 
