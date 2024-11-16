@@ -44,7 +44,7 @@ class AplicacaoService {
 
   // Novo método para agrupar aplicações por tipo de produto
   Future<List<Map<String, dynamic>>> getAplicacoesAgrupadasPorTipo(
-      int glebaId) async {
+      int glebaId, String s) async {
     List<Map<String, dynamic>> aplicacoesComTipos =
         await getAplicacoesWithProdutoTipoByGlebaId(glebaId);
     return _agruparAplicacoesPorTipo(aplicacoesComTipos);

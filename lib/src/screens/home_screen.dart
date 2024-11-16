@@ -196,56 +196,71 @@ class _HomeScreenState extends State<HomeScreen> {
                       Card(
                         elevation: 4,
                         margin: const EdgeInsets.all(8.0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  'Ciclo: ${ciclo.key}', // Exibe a descrição do ciclo
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                              Text('Gleba: ${gleba.key}',
-                                  style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600)),
-                              SizedBox(
-                                height: 200,
-                                child: PieChart(
-                                  PieChartData(
-                                    sections: gleba.value.entries.map((entry) {
-                                      return PieChartSectionData(
-                                        value: entry.value.toDouble(),
-                                        title: entry.value.toString(),
-                                        color: getColorForProduto(entry.key),
-                                      );
-                                    }).toList(),
-                                    centerSpaceRadius: 40,
-                                    sectionsSpace: 5,
+                        child: InkWell(
+                          onTap: () {
+                            // Navegar para a tela de detalhes, passando gleba e ciclo como argumentos
+                            Navigator.pushNamed(
+                              context,
+                              '/graficos',
+                              arguments: {
+                                'gleba': gleba.value,
+                                'ciclo': ciclo.value,
+                              },
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'Ciclo: ${ciclo.key}', // Exibe a descrição do ciclo
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                Text('Gleba: ${gleba.key}',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600)),
+                                SizedBox(
+                                  height: 200,
+                                  child: PieChart(
+                                    PieChartData(
+                                      sections:
+                                          gleba.value.entries.map((entry) {
+                                        return PieChartSectionData(
+                                          value: entry.value.toDouble(),
+                                          title: entry.value.toString(),
+                                          color: getColorForProduto(entry.key),
+                                        );
+                                      }).toList(),
+                                      centerSpaceRadius: 40,
+                                      sectionsSpace: 5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Adicionando a legenda
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Column(
-                                  children: gleba.value.entries.map((entry) {
-                                    return Row(
-                                      children: [
-                                        Container(
-                                          width: 20,
-                                          height: 20,
-                                          color: getColorForProduto(entry.key),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text('${entry.key} (${entry.value})'),
-                                      ],
-                                    );
-                                  }).toList(),
+                                // Adicionando a legenda
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Column(
+                                    children: gleba.value.entries.map((entry) {
+                                      return Row(
+                                        children: [
+                                          Container(
+                                            width: 20,
+                                            height: 20,
+                                            color:
+                                                getColorForProduto(entry.key),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text('${entry.key} (${entry.value})'),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
