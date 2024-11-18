@@ -1,5 +1,3 @@
-import 'package:flutter_tcc_app/src/models/aplicacao_model.dart';
-import 'package:flutter_tcc_app/src/models/ciclo_model.dart';
 import 'package:flutter_tcc_app/src/services/db_helper.dart';
 
 class HomeService {
@@ -24,7 +22,7 @@ class HomeService {
 
   Future<List<Map<String, dynamic>>> getAllGlebas() async {
     final db = await _dbHelper.database;
-    return await db.query('Gleba'); // Corrigido para "Gleba"
+    return await db.query('Gleba');
   }
 
   Future<List<Map<String, dynamic>>> getAplicacoesPorTipoAgrupado() async {
@@ -40,7 +38,7 @@ class HomeService {
     FROM Aplicacao a
     left JOIN Ciclo c ON a.ciclo_id = c.id
     left JOIN Gleba g ON a.gleba_id = g.id
-    left JOIN products p ON a.produto_id = p.id -- Corrigido para "Produto"
+    left JOIN products p ON a.produto_id = p.id 
     GROUP BY c.id, g.id, p.tipo
     ''';
 

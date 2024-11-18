@@ -198,13 +198,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: const EdgeInsets.all(8.0),
                         child: InkWell(
                           onTap: () {
-                            // Navegar para a tela de detalhes, passando gleba e ciclo como argumentos
+                            // Navegar para a tela de gráficos, passando glebaId e cicloId como parâmetros
+                            int glebaId = 1;
+                            int cicloId = 7;
+
                             Navigator.pushNamed(
                               context,
                               '/graficos',
                               arguments: {
-                                'gleba': gleba.value,
-                                'ciclo': ciclo.value,
+                                'glebaId': glebaId,
+                                'cicloId': cicloId,
                               },
                             );
                           },
@@ -286,18 +289,19 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.list),
+              icon: const Icon(Icons.menu),
               color: Colors.white,
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => MenuScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => MenuScreen()),
+                );
               },
             ),
             IconButton(
               icon: const Icon(Icons.exit_to_app),
               color: Colors.white,
               onPressed: () {
-                // Código para fechar o app
                 SystemNavigator.pop();
               },
             ),

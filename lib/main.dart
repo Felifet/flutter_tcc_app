@@ -101,8 +101,16 @@ class MyApp extends StatelessWidget {
       '/aplicacoes': (context) => const AplicacaoListScreen(),
       '/add_aplicacao': (context) => AddAplicacaoScreen(),
       '/importacao_produtos': (context) => const ImportacaoProdutosScreen(),
-      '/backup': (context) => const BackupScreen(),
-      '/graficos': (context) => GraficosScreen(),
+      '/backup': (context) => BackupScreen(),
+      //'/graficos': (context) => GraficosScreen(),
+      '/graficos': (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, int>?;
+        final glebaId = args?['glebaId'] ?? 0; // Nome do argumento ajustado
+        final cicloId = args?['cicloId'] ?? 0; // Nome do argumento ajustado
+        return GraficosScreen(glebaId: glebaId, cicloId: cicloId);
+      },
+
       '/edit_aplicacao': (context) {
         final aplicacao =
             ModalRoute.of(context)?.settings.arguments as Aplicacao;

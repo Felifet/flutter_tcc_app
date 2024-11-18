@@ -20,10 +20,12 @@ dependencies:
   file_picker: ^8.1.2 # Atualizado para a versão mais recente
   googleapis: ^10.0.0
   googleapis_auth: ^1.4.1
+  google_sign_in: ^5.0.7
   http: ^0.13.6       # Mantido, pois é a versão mais recente
   url_launcher: ^6.1.5 
   fl_chart: ^0.69.0
   charts_common: ^0.12.0 
+  
 
   
 dev_dependencies:

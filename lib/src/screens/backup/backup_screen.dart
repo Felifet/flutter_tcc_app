@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_tcc_app/src/screens/home_screen.dart';
-import 'package:flutter_tcc_app/src/screens/menu_screen.dart';
-import 'package:flutter_tcc_app/src/services/backup_service.dart';
-import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
 
 class BackupScreen extends StatefulWidget {
   const BackupScreen({super.key});
@@ -13,104 +13,159 @@ class BackupScreen extends StatefulWidget {
 }
 
 class _BackupScreenState extends State<BackupScreen> {
-  String _statusMessage = '';
+  final GoogleSignIn _googleSignIn =
+      GoogleSignIn(scopes: [drive.DriveApi.driveFileScope]);
+  GoogleSignInAccount? _currentUser;
+  drive.DriveApi? _driveApi;
+  String? _selectedFilePath; // Caminho do arquivo selecionado
 
-  // Função para exibir o caminho do banco de dados
-  Future<void> _showDatabasePath() async {
-    try {
-      // Obtém o diretório onde o banco de dados está armazenado
-      final directory = await getApplicationDocumentsDirectory();
-      final databasePath = directory.path;
-
-      // Exibe o caminho em um AlertDialog
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Caminho do Banco de Dados'),
-            content: Text(databasePath), // Mostra o caminho do banco de dados
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Fechar'),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
+  @override
+  void initState() {
+    super.initState();
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       setState(() {
-        _statusMessage = 'Erro ao obter o caminho: $e';
+        _currentUser = account;
       });
+      if (_currentUser != null) {
+        _authenticateWithGoogle();
+      }
+    });
+  }
+
+  Future<void> _signIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      print("Error during sign-in: $error");
     }
+  }
+
+  Future<void> _authenticateWithGoogle() async {
+    if (_currentUser != null) {
+      print('Usuário autenticado: ${_currentUser!.displayName}');
+      final authHeaders = await _currentUser!.authHeaders;
+      final authenticateClient = GoogleAuthClient(authHeaders);
+      _driveApi = drive.DriveApi(authenticateClient);
+      setState(() {}); // Atualiza a interface após autenticação
+    }
+  }
+
+  Future<void> _selectFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles();
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _selectedFilePath = result.files.single.path!;
+        });
+      }
+    } catch (e) {
+      print('Erro ao selecionar arquivo: $e');
+    }
+  }
+
+  Future<void> _uploadBackup() async {
+    if (_driveApi == null) {
+      print('Não há autenticação com o Google Drive');
+      return;
+    }
+
+    if (_selectedFilePath == null) {
+      print('Nenhum arquivo selecionado para backup');
+      return;
+    }
+
+    try {
+      // Nome do arquivo com data
+      final dateSuffix = DateTime.now().toIso8601String().split('T').first;
+      final fileName =
+          'backup_${dateSuffix}_${_selectedFilePath!.split('/').last}';
+
+      final file = drive.File()
+        ..name = fileName
+        ..mimeType = 'application/octet-stream';
+
+      final fileData = await _getFileData();
+
+      final media = drive.Media(
+        Stream.value(fileData),
+        fileData.length,
+      );
+
+      final uploadedFile =
+          await _driveApi!.files.create(file, uploadMedia: media);
+      print('Arquivo enviado com sucesso: ${uploadedFile.id}');
+    } catch (e) {
+      print('Erro ao fazer upload: $e');
+    }
+  }
+
+  Future<List<int>> _getFileData() async {
+    if (_selectedFilePath != null) {
+      return await File(_selectedFilePath!).readAsBytes();
+    }
+    return [];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Backup de Dados'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed:
-                  _showDatabasePath, // Chamando a função para mostrar o caminho
-              child: const Text('Mostrar Caminho do Banco de Dados'),
+      appBar: AppBar(title: const Text('Backup no Google Drive')),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_currentUser != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Olá, ${_currentUser!.displayName ?? 'Usuário'}',
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              _statusMessage,
-              style: TextStyle(
-                fontSize: 16,
-                color: _statusMessage.contains('sucesso')
-                    ? Colors.green
-                    : Colors.red,
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  if (_currentUser == null) ...[
+                    ElevatedButton(
+                      onPressed: _signIn,
+                      child: const Text('Login no Google'),
+                    ),
+                  ] else ...[
+                    ElevatedButton(
+                      onPressed: _selectFile,
+                      child: const Text('Selecionar Arquivo'),
+                    ),
+                    if (_selectedFilePath != null) ...[
+                      Text(
+                        'Arquivo Selecionado: ${_selectedFilePath!.split('/').last}',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _uploadBackup,
+                        child: const Text('Fazer Backup'),
+                      ),
+                    ],
+                  ],
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        color: const Color.fromARGB(255, 5, 94, 105),
-        child: Container(
-          height: 20, // Ajuste a altura da BottomAppBar
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home),
-                color: const Color.fromARGB(255, 255, 255, 255),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.list),
-                color: const Color.fromARGB(255, 255, 255, 255),
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => MenuScreen()));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.exit_to_app_sharp),
-                color: const Color.fromARGB(255, 255, 255, 255),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
           ),
-        ),
+        ],
       ),
     );
+  }
+}
+
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  GoogleAuthClient(this._headers);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers.addAll(_headers);
+    return request.send();
   }
 }
