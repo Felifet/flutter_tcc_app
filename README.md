@@ -1,8 +1,9 @@
 # flutter_tcc_app
+### Olá, meu nome é Felipe Gabrielli e este é meu projeto do TCC. Caso tenha alguma dúvida, fico a disposição no e-mail: felipe.gabrielli@hotmail.com
 
 ## 📱 Sobre o Projeto
 
-O **App** é um aplicativo móvel desenvolvido para **gestão de insumos no cultivo de videiras**, utilizando as tecnologias **Flutter** e **Dart**. Este aplicativo foi projetado para ajudar agricultores a **controlar e gerenciar insumos** como fertilizantes, pesticidas e outros recursos essenciais para o cultivo eficiente das videiras.
+O **Tcc_App** é um aplicativo móvel desenvolvido para **gestão de insumos no cultivo de videiras**, utilizando as tecnologias **Flutter** e **Dart**. Este aplicativo foi projetado como projeto de trabalho de conclusão de curso, o objetivo do desenvolvimento é ajudar agricultores a **controlar e gerenciar insumos** como fertilizantes, pesticidas e outros recursos essenciais para o cultivo eficiente das videiras.
 
 ## 🚀 Tecnologias
 
